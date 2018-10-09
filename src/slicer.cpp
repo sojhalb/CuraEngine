@@ -958,4 +958,174 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
     log("slice make polygons took %.3f seconds\n",slice_timer.restart());
 }
 
+Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t thickness, const size_t slice_layer_count, bool keep_none_closed, bool extensive_stitching,
+               bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers, Point cyl_slice) 
+               // added cyl_slice, for now it's assumed that it's a vertical line
+: mesh(mesh)
+{
+    SlicingTolerance slicing_tolerance = mesh->getSettingAsSlicingTolerance("slicing_tolerance");
+
+    assert(slice_layer_count > 0);
+
+    TimeKeeper slice_timer;
+
+    layers.resize(slice_layer_count);
+
+    // set (and initialize compensation for) initial layer, depending on slicing mode
+    layers[0].z = std::max(0LL, initial_layer_thickness - thickness);
+    int adjusted_layer_offset = initial_layer_thickness;
+    if (use_variable_layer_heights)
+    {
+        layers[0].z = adaptive_layers->at(0).z_position;
+    }
+    else if (slicing_tolerance == SlicingTolerance::MIDDLE)
+    {
+        layers[0].z = initial_layer_thickness / 2;
+        adjusted_layer_offset = initial_layer_thickness + (thickness / 2);
+    }
+
+    // define all layer z positions (depending on slicing mode, see above)
+    for (unsigned int layer_nr = 1; layer_nr < slice_layer_count; layer_nr++)
+    {
+        if (use_variable_layer_heights)
+        {
+            layers[layer_nr].z = adaptive_layers->at(layer_nr).z_position;
+        }
+        else
+        {
+            layers[layer_nr].z = adjusted_layer_offset + (thickness * (layer_nr - 1));
+        }
+    }
+
+    // loop over all mesh faces
+    for (unsigned int mesh_idx = 0; mesh_idx < mesh->faces.size(); mesh_idx++)
+    {
+        // get all vertices per face
+        const MeshFace& face = mesh->faces[mesh_idx];
+        const MeshVertex& v0 = mesh->vertices[face.vertex_index[0]];
+        const MeshVertex& v1 = mesh->vertices[face.vertex_index[1]];
+        const MeshVertex& v2 = mesh->vertices[face.vertex_index[2]];
+
+        // get all vertices represented as 3D point
+        Point3 p0 = v0.p;
+        Point3 p1 = v1.p;
+        Point3 p2 = v2.p;
+
+        //convert points to cylindrical
+        Point p0_cyl = Point3( angle(p0), p0.y, DistanceSqrd(cyl_slice));
+        Point p1_cyl = Point3( angle(p1), p1.y, DistanceSqrd(cyl_slice));
+        Point p2_cyl = Point3( angle(p2), p2.y, DistanceSqrd(cyl_slice));
+
+        // find the minimum and maximum R value
+        int32_t minR = p0.z;
+        int32_t maxR = p0.z;
+        if (p1.z < minR) minR = p1.z;
+        if (p2.z < minR) minR = p2.z;
+        if (p1.z > maxR) maxR = p1.z;
+        if (p2.z > maxR) maxR = p2.z;
+
+        // calculate all intersections between a layer plane and a triangle
+        for (unsigned int layer_nr = 0; layer_nr < layers.size(); layer_nr++)
+        {
+            int32_t z = layers.at(layer_nr).z;
+
+            if (z < minZ) continue;
+
+            SlicerSegment s;
+            s.endVertex = nullptr;
+            int end_edge_idx = -1;
+
+            if (p0.z < z && p1.z >= z && p2.z >= z)
+            {
+                s = project2D(p0, p2, p1, z);
+                end_edge_idx = 0;
+                if (p1.z == z)
+                {
+                    s.endVertex = &v1;
+                }
+            }
+            else if (p0.z > z && p1.z < z && p2.z < z)
+            {
+                s = project2D(p0, p1, p2, z);
+                end_edge_idx = 2;
+            }
+            else if (p1.z < z && p0.z >= z && p2.z >= z)
+            {
+                s = project2D(p1, p0, p2, z);
+                end_edge_idx = 1;
+                if (p2.z == z)
+                {
+                    s.endVertex = &v2;
+                }
+            }
+            else if (p1.z > z && p0.z < z && p2.z < z)
+            {
+                s = project2D(p1, p2, p0, z);
+                end_edge_idx = 0;
+            }
+            else if (p2.z < z && p1.z >= z && p0.z >= z)
+            {
+                s = project2D(p2, p1, p0, z);
+                end_edge_idx = 2;
+                if (p0.z == z)
+                {
+                    s.endVertex = &v0;
+                }
+            }
+            else if (p2.z > z && p1.z < z && p0.z < z)
+            {
+                s = project2D(p2, p0, p1, z);
+                end_edge_idx = 1;
+            }
+            else
+            {
+                //Not all cases create a segment, because a point of a face could create just a dot, and two touching faces
+                //  on the slice would create two segments
+                continue;
+            }
+
+            // store the segments per layer
+            layers[layer_nr].face_idx_to_segment_idx.insert(std::make_pair(mesh_idx, layers[layer_nr].segments.size()));
+            s.faceIndex = mesh_idx;
+            s.endOtherFaceIdx = face.connected_face_index[end_edge_idx];
+            s.addedToPolygon = false;
+            layers[layer_nr].segments.push_back(s);
+        }
+    }
+
+    log("slice of mesh took %.3f seconds\n",slice_timer.restart());
+
+    std::vector<SlicerLayer>& layers_ref = layers; // force layers not to be copied into the threads
+
+#pragma omp parallel for default(none) shared(mesh,layers_ref) firstprivate(keep_none_closed, extensive_stitching)
+    for(unsigned int layer_nr=0; layer_nr<layers_ref.size(); layer_nr++)
+    {
+        layers_ref[layer_nr].makePolygons(mesh, keep_none_closed, extensive_stitching, layer_nr == 0);
+    }
+
+    switch(slicing_tolerance)
+    {
+    case SlicingTolerance::INCLUSIVE:
+        for (unsigned int layer_nr = 0; layer_nr + 1 < layers_ref.size(); layer_nr++)
+        {
+            layers[layer_nr].polygons = layers[layer_nr].polygons.unionPolygons(layers[layer_nr + 1].polygons);
+        }
+        break;
+    case SlicingTolerance::EXCLUSIVE:
+        for (unsigned int layer_nr = 0; layer_nr + 1 < layers_ref.size(); layer_nr++)
+        {
+            layers[layer_nr].polygons = layers[layer_nr].polygons.intersection(layers[layer_nr + 1].polygons);
+        }
+        layers.back().polygons.clear();
+        break;
+    case SlicingTolerance::MIDDLE:
+    default:
+        // do nothing
+        ;
+    }
+
+    mesh->expandXY(mesh->getSettingInMicrons("xy_offset"));
+    log("slice make polygons took %.3f seconds\n",slice_timer.restart());
+}
+
 }//namespace cura
