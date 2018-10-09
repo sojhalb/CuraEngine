@@ -1012,9 +1012,9 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
         Point3 p2 = v2.p;
 
         //convert points to cylindrical
-        Point p0_cyl = Point3( angle(p0), p0.y, DistanceSqrd(cyl_slice));
-        Point p1_cyl = Point3( angle(p1), p1.y, DistanceSqrd(cyl_slice));
-        Point p2_cyl = Point3( angle(p2), p2.y, DistanceSqrd(cyl_slice));
+        Point3 p0_cyl = Point3( angle(new IntPoint(p0.x, p0.y)), p0.y, DistanceSqrd(cyl_slice));
+        Point3 p1_cyl = Point3( angle(new IntPoint(p1.x, p1.y)), p1.y, DistanceSqrd(cyl_slice));
+        Point3 p2_cyl = Point3( angle(new IntPoint(p2.x, p2.y)), p2.y, DistanceSqrd(cyl_slice));
 
         // find the minimum and maximum R value
         int32_t minR = p0.z;
@@ -1027,54 +1027,54 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
         // calculate all intersections between a layer plane and a triangle
         for (unsigned int layer_nr = 0; layer_nr < layers.size(); layer_nr++)
         {
-            int32_t z = layers.at(layer_nr).z;
+            int32_t r = layers.at(layer_nr).z;
 
-            if (z < minZ) continue;
+            if (r < minZ) continue;
 
             SlicerSegment s;
             s.endVertex = nullptr;
             int end_edge_idx = -1;
 
-            if (p0.z < z && p1.z >= z && p2.z >= z)
+            if (p0.z < r && p1.z >= r && p2.z >= r)
             {
-                s = project2D(p0, p2, p1, z);
+                s = project2D(p0, p2, p1, r);
                 end_edge_idx = 0;
-                if (p1.z == z)
+                if (p1.z == r)
                 {
                     s.endVertex = &v1;
                 }
             }
-            else if (p0.z > z && p1.z < z && p2.z < z)
+            else if (p0.z > r && p1.z < r && p2.z < r)
             {
-                s = project2D(p0, p1, p2, z);
+                s = project2D(p0, p1, p2, r);
                 end_edge_idx = 2;
             }
-            else if (p1.z < z && p0.z >= z && p2.z >= z)
+            else if (p1.z < r && p0.z >= r && p2.z >= r)
             {
-                s = project2D(p1, p0, p2, z);
+                s = project2D(p1, p0, p2, r);
                 end_edge_idx = 1;
-                if (p2.z == z)
+                if (p2.z == r)
                 {
                     s.endVertex = &v2;
                 }
             }
-            else if (p1.z > z && p0.z < z && p2.z < z)
+            else if (p1.z > r && p0.z < r && p2.z < r)
             {
-                s = project2D(p1, p2, p0, z);
+                s = project2D(p1, p2, p0, r);
                 end_edge_idx = 0;
             }
-            else if (p2.z < z && p1.z >= z && p0.z >= z)
+            else if (p2.z < r && p1.z >= r && p0.z >= r)
             {
-                s = project2D(p2, p1, p0, z);
+                s = project2D(p2, p1, p0, r);
                 end_edge_idx = 2;
-                if (p0.z == z)
+                if (p0.z == r)
                 {
                     s.endVertex = &v0;
                 }
             }
-            else if (p2.z > z && p1.z < z && p0.z < z)
+            else if (p2.z > r && p1.z < r && p0.z < r)
             {
-                s = project2D(p2, p0, p1, z);
+                s = project2D(p2, p0, p1, r);
                 end_edge_idx = 1;
             }
             else
