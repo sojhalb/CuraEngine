@@ -492,6 +492,9 @@ public:
     Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t thickness, const size_t slice_layer_count, bool keepNoneClosed,
            bool extensiveStitching, bool use_variable_layer_heights, std::vector<AdaptiveLayer> *adaptive_layers);
 
+    Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t thickness, const size_t slice_layer_count, bool keepNoneClosed,
+           bool extensiveStitching, bool use_variable_layer_heights, std::vector<AdaptiveLayer> *adaptive_layers, IntPoint cyl_slice);
+
     /*!
      * Linear interpolation
      *

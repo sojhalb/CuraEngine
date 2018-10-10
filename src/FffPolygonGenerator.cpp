@@ -140,20 +140,19 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
         }
 
         Mesh& mesh = meshgroup->meshes[mesh_idx];
-        #if 0
+
         //original slicer
-        Slicer* slicer = new Slicer(&mesh, initial_layer_thickness, layer_thickness, slice_layer_count,
-                                    mesh.getSettingBoolean("meshfix_keep_open_polygons"),
-                                    mesh.getSettingBoolean("meshfix_extensive_stitching"),
-                                    use_variable_layer_heights, adaptive_layer_height_values);
-        #elif
+        // Slicer* slicer = new Slicer(&mesh, initial_layer_thickness, layer_thickness, slice_layer_count,
+        //                             mesh.getSettingBoolean("meshfix_keep_open_polygons"),
+        //                             mesh.getSettingBoolean("meshfix_extensive_stitching"),
+        //                             use_variable_layer_heights, adaptive_layer_height_values);
+
         //cylindrical slicer
         Slicer* slicer = new Slicer(&mesh, initial_layer_thickness, layer_thickness, slice_layer_count,
                                     mesh.getSettingBoolean("meshfix_keep_open_polygons"),
                                     mesh.getSettingBoolean("meshfix_extensive_stitching"),
                                     use_variable_layer_heights, adaptive_layer_height_values,
-                                    new IntPoint(0,0));
-        #endif
+                                    IntPoint{0,0});
 
         slicerList.push_back(slicer);
 

@@ -959,7 +959,7 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
 }
 
 Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t thickness, const size_t slice_layer_count, bool keep_none_closed, bool extensive_stitching,
-               bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers, Point cyl_slice) 
+               bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers, IntPoint cyl_slice) 
                // added cyl_slice, for now it's assumed that it's a vertical line
 : mesh(mesh)
 {
@@ -1007,14 +1007,18 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
         const MeshVertex& v2 = mesh->vertices[face.vertex_index[2]];
 
         // get all vertices represented as 3D point
-        Point3 p0 = v0.p;
-        Point3 p1 = v1.p;
-        Point3 p2 = v2.p;
+        Point3 pre0 = v0.p;
+        Point3 pre1 = v1.p;
+        Point3 pre2 = v2.p;
+
+        IntPoint pp0 {pre0.x, pre0.y};
+        IntPoint pp1 {pre1.x, pre1.y};
+        IntPoint pp2 {pre2.x, pre2.y};
 
         //convert points to cylindrical
-        Point3 p0_cyl = Point3( angle(new IntPoint(p0.x, p0.y)), p0.y, DistanceSqrd(cyl_slice));
-        Point3 p1_cyl = Point3( angle(new IntPoint(p1.x, p1.y)), p1.y, DistanceSqrd(cyl_slice));
-        Point3 p2_cyl = Point3( angle(new IntPoint(p2.x, p2.y)), p2.y, DistanceSqrd(cyl_slice));
+        Point3 p0 = Point3( angle(pp0.p()), p0.y, sqrt(pre0.x*pre0.x + pre0.y*pre0.y));
+        Point3 p1 = Point3( angle(pp1.p()), p1.y, sqrt(pre1.x*pre1.x + pre1.y*pre1.y));
+        Point3 p2 = Point3( angle(pp2.p()), p2.y, sqrt(pre2.x*pre2.x + pre2.y*pre2.y));
 
         // find the minimum and maximum R value
         int32_t minR = p0.z;
@@ -1029,7 +1033,7 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
         {
             int32_t r = layers.at(layer_nr).z;
 
-            if (r < minZ) continue;
+            if (r < minR) continue;
 
             SlicerSegment s;
             s.endVertex = nullptr;
