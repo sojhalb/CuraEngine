@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "(gdb) CuraEngine",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/CuraEngine",
+            // "args" : [
+            // ],
+            "args": ["slice",
+                "-v",
+                "-j",
+                "/usr/local/src/Cura/resources/definitions/prusa_i3_mk2.def.json",
+                "-l",
+                "~/Downloads/Twisted_Vase_Basic.stl",
+                "-o",
+                "${workspaceFolder}/output/test.gcode",
+                ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [{"name":"CURA_ENGINE_SEARCH_PATH","value":"/usr/local/src/Cura/resources/definitions:/usr/local/src/Cura/resources/extruders"}],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}
