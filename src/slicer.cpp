@@ -1016,9 +1016,9 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
         IntPoint pp2 {pre2.x, pre2.y};
 
         //convert points to cylindrical
-        Point3 p0 = Point3( angle(pp0.p()), p0.y, sqrt(pre0.x*pre0.x + pre0.y*pre0.y));
-        Point3 p1 = Point3( angle(pp1.p()), p1.y, sqrt(pre1.x*pre1.x + pre1.y*pre1.y));
-        Point3 p2 = Point3( angle(pp2.p()), p2.y, sqrt(pre2.x*pre2.x + pre2.y*pre2.y));
+        Point3 p0 = Point3( angle(pp0.p()), pre0.y, sqrt(pre0.x*pre0.x + pre0.y*pre0.y));
+        Point3 p1 = Point3( angle(pp1.p()), pre1.y, sqrt(pre1.x*pre1.x + pre1.y*pre1.y));
+        Point3 p2 = Point3( angle(pp2.p()), pre2.y, sqrt(pre2.x*pre2.x + pre2.y*pre2.y));
 
         // find the minimum and maximum R value
         int32_t minR = p0.z;
