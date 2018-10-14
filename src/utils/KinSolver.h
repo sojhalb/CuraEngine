@@ -1,6 +1,8 @@
 #ifndef UTILS_KINSOLVER_H
 #define UTILS_KINSOLVER_H
 
+#include <kinsol/kinsol.h>
+
 namespace cura
 {
     class KinSolver
