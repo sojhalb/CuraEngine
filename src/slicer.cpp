@@ -7,7 +7,7 @@
 #include "utils/gettime.h"
 #include "utils/logoutput.h"
 #include "utils/SparsePointGridInclusive.h"
-#include "utils/KinSolver.h"
+#include "utils/CylSolver.h"
 
 #include "slicer.h"
 
@@ -1041,8 +1041,10 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
             int end_edge_idx = -1;
 
             //solve for cylinder with triangle intersections
-            KinSolver* ks = new KinSolver(1,2,3,4,5);
+            CylSolver* cs = new CylSolver(1,-1,2,2,-1);
 
+            CylSolver* cs2 = new CylSolver(2,1,4,3,-4);
+            realtype temp;
             // store the segments per layer
             layers[layer_nr].face_idx_to_segment_idx.insert(std::make_pair(mesh_idx, layers[layer_nr].segments.size()));
             s.faceIndex = mesh_idx;
