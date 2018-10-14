@@ -17,7 +17,7 @@
                 "-j",
                 "/usr/local/src/Cura/resources/definitions/prusa_i3_mk2.def.json",
                 "-l",
-                "/home/sojhalb/Downloads/Twisted_6-sided_Vase_Basic/Twisted_Vase_Basic.stl",
+                "~/Downloads/40mmcube.stl",
                 "-o",
                 "${workspaceFolder}/output/test.gcode",
                 ],

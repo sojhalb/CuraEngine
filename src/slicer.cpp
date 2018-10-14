@@ -7,6 +7,7 @@
 #include "utils/gettime.h"
 #include "utils/logoutput.h"
 #include "utils/SparsePointGridInclusive.h"
+#include "utils/KinSolver.h"
 
 #include "slicer.h"
 
@@ -1033,60 +1034,14 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
         {
             int32_t r = layers.at(layer_nr).z;
 
-            if (r < minR) continue;
+            //if (r < minR) continue;
 
             SlicerSegment s;
             s.endVertex = nullptr;
             int end_edge_idx = -1;
 
-            if (p0.z < r && p1.z >= r && p2.z >= r)
-            {
-                s = project2D(p0, p2, p1, r);
-                end_edge_idx = 0;
-                if (p1.z == r)
-                {
-                    s.endVertex = &v1;
-                }
-            }
-            else if (p0.z > r && p1.z < r && p2.z < r)
-            {
-                s = project2D(p0, p1, p2, r);
-                end_edge_idx = 2;
-            }
-            else if (p1.z < r && p0.z >= r && p2.z >= r)
-            {
-                s = project2D(p1, p0, p2, r);
-                end_edge_idx = 1;
-                if (p2.z == r)
-                {
-                    s.endVertex = &v2;
-                }
-            }
-            else if (p1.z > r && p0.z < r && p2.z < r)
-            {
-                s = project2D(p1, p2, p0, r);
-                end_edge_idx = 0;
-            }
-            else if (p2.z < r && p1.z >= r && p0.z >= r)
-            {
-                s = project2D(p2, p1, p0, r);
-                end_edge_idx = 2;
-                if (p0.z == r)
-                {
-                    s.endVertex = &v0;
-                }
-            }
-            else if (p2.z > r && p1.z < r && p0.z < r)
-            {
-                s = project2D(p2, p0, p1, r);
-                end_edge_idx = 1;
-            }
-            else
-            {
-                //Not all cases create a segment, because a point of a face could create just a dot, and two touching faces
-                //  on the slice would create two segments
-                continue;
-            }
+            //solve for cylinder with triangle intersections
+            KinSolver* ks = new KinSolver(1,2,3,4,5);
 
             // store the segments per layer
             layers[layer_nr].face_idx_to_segment_idx.insert(std::make_pair(mesh_idx, layers[layer_nr].segments.size()));
