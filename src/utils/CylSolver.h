@@ -78,15 +78,18 @@ class CylSolver
         {
             data->lb[0] = theta1;
             data->ub[0] = theta2;
+            data->lb[1] = ZERO;
+            data->ub[1] = 1;
         }
         else
         {
             data->lb[0] = theta2;
             data->ub[0] = theta1;
+            data->lb[1] = ZERO;
+            data->ub[1] = 1;
         }
         //set lower and upper limits of t, t = 0 is p1 and t = 1 is p2
-        data->lb[1] = ZERO;
-        data->ub[1] = 1;
+
         data->px1[0] = data->px1[1] = px1;
         data->px2[0] = data->px2[1] = px2;
         data->pz1[0] = data->pz1[1] = pz1;
@@ -113,9 +116,17 @@ class CylSolver
         if (check_flag((void *)c, "N_VNew_Serial", 0))
             return;
 
+        //if (theta1 < theta2)
         // set initial guesses to lower and upper bound
-        SetInitialGuess1(u1, data);
-        SetInitialGuess2(u2, data);
+        //{
+            SetInitialGuess1(u1, data);
+            SetInitialGuess2(u2, data);
+        // }
+        // else
+        // {
+        //     SetInitialGuess1(u2, data);
+        //     SetInitialGuess2(u1, data);
+        // }
 
         N_VConst_Serial(ONE, s); /* no scaling */
 
@@ -408,7 +419,7 @@ class CylSolver
         px1 = data->px1;
         px2 = data->px2;
         pz1 = data->pz1;
-        pz2 = data->px2;
+        pz2 = data->pz2;
         R = data->R;
 
         udata = N_VGetArrayPointer_Serial(u);
