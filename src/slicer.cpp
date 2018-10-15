@@ -1041,9 +1041,14 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
             int end_edge_idx = -1;
 
             //solve for cylinder with triangle intersections
-            CylSolver* cs = new CylSolver(1,-1,2,2,-1);
+            CylSolver* cs = new CylSolver(1,2,-1,-1,2);
+            //expected solutions at: (theta = 0, t = 1/3)
+            //                  and: (theta = pi/2, t = 2/3)
 
-            CylSolver* cs2 = new CylSolver(2,1,4,3,-4);
+            CylSolver* cs2 = new CylSolver(2,-1,4,3,-4);
+            // expected solutions at: (theta = 0.644, t = 0.35)
+            //                  and: (theta = pi/2, t = 0.75)
+
             realtype temp;
             // store the segments per layer
             layers[layer_nr].face_idx_to_segment_idx.insert(std::make_pair(mesh_idx, layers[layer_nr].segments.size()));

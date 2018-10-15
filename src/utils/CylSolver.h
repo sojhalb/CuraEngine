@@ -15,7 +15,7 @@
 /* Problem Constants */
 
 #define NVAR 2
-#define NEQ 3 * NVAR
+#define NEQ 3 * (NVAR)
 
 #define FTOL RCONST(1.e-5) /* function tolerance */
 #define STOL RCONST(1.e-5) /* step tolerance */
@@ -48,9 +48,9 @@ namespace cura
 class CylSolver
 {
   public:
-    int theta1, theta2;
-    int y1, y2;
-    CylSolver(realtype R, realtype x1, realtype x2, realtype z1, realtype z2)
+    realtype theta1, theta2;
+    realtype y1, y2;
+    CylSolver(realtype R, realtype px1, realtype pz1, realtype px2, realtype pz2)
     {
         UserData data;
         realtype fnormtol, scsteptol;
@@ -71,15 +71,26 @@ class CylSolver
 
         data = (UserData)malloc(sizeof *data);
         // set lower and upper limits for theta to theta1 and theta2
-        data->lb[0] = atan2(z1, x1) + PI;
-        data->ub[0] = atan2(z2, x1) + PI;
+        theta1 = atan2(pz1, px1);
+        theta2 = atan2(pz2, px2);
+
+        if (theta1 < theta2)
+        {
+            data->lb[0] = theta1;
+            data->ub[0] = theta2;
+        }
+        else
+        {
+            data->lb[0] = theta2;
+            data->ub[0] = theta1;
+        }
         //set lower and upper limits of t, t = 0 is p1 and t = 1 is p2
         data->lb[1] = ZERO;
         data->ub[1] = 1;
-        data->px1[0] = data->px1[1] = x1;
-        data->px2[0] = data->px2[1] = x2;
-        data->pz1[0] = data->pz1[1] = z1;
-        data->pz1[0] = data->pz2[1] = z2;
+        data->px1[0] = data->px1[1] = px1;
+        data->px2[0] = data->px2[1] = px2;
+        data->pz1[0] = data->pz1[1] = pz1;
+        data->pz2[0] = data->pz2[1] = pz2;
         data->R[0] = data->R[1] = R;
 
         u1 = N_VNew_Serial(NEQ);
@@ -154,17 +165,67 @@ class CylSolver
         if (check_flag(&flag, "KINDlsSetLinearSolver", 1))
             return;
 
+        printf("\n------------------------------------------\n");
+        printf("\nInitial guess at p1\n");
+        printf("  [x1,x2] = ");
+        PrintOutput(u1);
+
         N_VScale_Serial(ONE, u1, u);
         glstr = KIN_NONE;
         mset = 1;
         SolveIt(kmem, u, s, glstr, mset);
 
+        /* --------------------------- */
+
+        N_VScale_Serial(ONE, u1, u);
+        glstr = KIN_LINESEARCH;
+        mset = 1;
+        SolveIt(kmem, u, s, glstr, mset);
+
+        /* --------------------------- */
+
+        N_VScale_Serial(ONE, u1, u);
+        glstr = KIN_NONE;
+        mset = 0;
+        SolveIt(kmem, u, s, glstr, mset);
+
+        /* --------------------------- */
+
+        N_VScale_Serial(ONE, u1, u);
+        glstr = KIN_LINESEARCH;
+        mset = 0;
+        SolveIt(kmem, u, s, glstr, mset);
+
         theta1 = Ith(u, 1);
         y1 = Ith(u, 2);
-
+        printf("\n------------------------------------------\n");
+        printf("\nInitial guess at p2 \n");
+        printf("  [x1,x2] = ");
+        PrintOutput(u2);
         N_VScale_Serial(ONE, u2, u);
         glstr = KIN_NONE;
         mset = 1;
+        SolveIt(kmem, u, s, glstr, mset);
+
+        /* --------------------------- */
+
+        N_VScale_Serial(ONE, u2, u);
+        glstr = KIN_LINESEARCH;
+        mset = 1;
+        SolveIt(kmem, u, s, glstr, mset);
+
+        /* --------------------------- */
+
+        N_VScale_Serial(ONE, u2, u);
+        glstr = KIN_NONE;
+        mset = 0;
+        SolveIt(kmem, u, s, glstr, mset);
+
+        /* --------------------------- */
+
+        N_VScale_Serial(ONE, u2, u);
+        glstr = KIN_LINESEARCH;
+        mset = 0;
         SolveIt(kmem, u, s, glstr, mset);
 
         theta2 = Ith(u, 1);
@@ -263,6 +324,7 @@ class CylSolver
                     funcname);
             return (1);
         }
+        return (0);
     }
 
     static int SolveIt(void *kmem, N_Vector u, N_Vector s, int glstr, int mset)
@@ -290,11 +352,46 @@ class CylSolver
             return (1);
 
         printf("Solution:\n  [x1,x2] = ");
-        //PrintOutput(u);
+        PrintOutput(u);
 
-        //PrintFinalStats(kmem);
+        PrintFinalStats(kmem);
 
         return (0);
+    }
+
+    static void PrintOutput(N_Vector u)
+    {
+#if defined(SUNDIALS_EXTENDED_PRECISION)
+        printf(" %8.6Lg  %8.6Lg\n", Ith(u, 1), Ith(u, 2));
+#elif defined(SUNDIALS_DOUBLE_PRECISION)
+        printf(" %8.6g  %8.6g\n", Ith(u, 1), Ith(u, 2));
+#else
+        printf(" %8.6g  %8.6g\n", Ith(u, 1), Ith(u, 2));
+#endif
+    }
+
+    /* 
+ * Print final statistics contained in iopt 
+ */
+
+    static void PrintFinalStats(void *kmem)
+    {
+        long int nni, nfe, nje, nfeD;
+        int flag;
+
+        flag = KINGetNumNonlinSolvIters(kmem, &nni);
+        check_flag(&flag, "KINGetNumNonlinSolvIters", 1);
+        flag = KINGetNumFuncEvals(kmem, &nfe);
+        check_flag(&flag, "KINGetNumFuncEvals", 1);
+
+        flag = KINDlsGetNumJacEvals(kmem, &nje);
+        check_flag(&flag, "KINDlsGetNumJacEvals", 1);
+        flag = KINDlsGetNumFuncEvals(kmem, &nfeD);
+        check_flag(&flag, "KINDlsGetNumFuncEvals", 1);
+
+        printf("Final Statistics:\n");
+        printf("  nni = %5ld    nfe  = %5ld \n", nni, nfe);
+        printf("  nje = %5ld    nfeD = %5ld \n", nje, nfeD);
     }
 
     static int func(N_Vector u, N_Vector f, void *user_data)
@@ -311,7 +408,7 @@ class CylSolver
         px1 = data->px1;
         px2 = data->px2;
         pz1 = data->pz1;
-        px2 = data->px2;
+        pz2 = data->px2;
         R = data->R;
 
         udata = N_VGetArrayPointer_Serial(u);

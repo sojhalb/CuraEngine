@@ -197,8 +197,10 @@ endif ()
 
 # Compiling CuraEngine itself.
 add_library(_CuraEngine STATIC ${engine_SRCS} ${engine_PB_SRCS}) #First compile all of CuraEngine as library, allowing this to be re-used for tests.
-#Include sundials I guess
+
+#Add sundials I guess
 target_include_directories(_CuraEngine PUBLIC /usr/local/src/Sundials/include)
+target_link_libraries(_CuraEngine /usr/local/src/Sundials-build/src/kinsol/libsundials_kinsol.a)
 
 if (CuraEngine_Download_Stb)
     add_dependencies(_CuraEngine stb)
@@ -230,13 +232,10 @@ if (UNIX)
 endif()
 
 if (NOT WIN32)
-target_include_directories(CuraEngine PUBLIC /usr/local/src/Sundials/include)
   add_executable(CuraEngine src/main.cpp) # Then compile main.cpp as separate executable, and link the library to it.
-target_include_directories(CuraEngine PUBLIC /usr/local/src/Sundials/include)
 else()
   add_executable(CuraEngine src/main.cpp ${RES_FILES}) # ..., but don't forget the glitter!
 endif(NOT WIN32)
-
 
 target_link_libraries(CuraEngine _CuraEngine)
 set_target_properties(CuraEngine PROPERTIES COMPILE_DEFINITIONS "VERSION=\"${CURA_ENGINE_VERSION}\"")
