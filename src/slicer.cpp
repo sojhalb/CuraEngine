@@ -1040,6 +1040,12 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
             s.endVertex = nullptr;
             int end_edge_idx = -1;
 
+            //TODO: Add distance detection to save expensive intersection calc
+
+            //TODO: Determine which case a mesh is, and either 
+            //      use CylSolver to solve for angles or calcParamTDirect()
+
+            //TODO: Calculate intersections using CylSolver(R, x1, z1, x2, z2)
             //solve for cylinder with triangle intersections
             CylSolver* cs = new CylSolver(1,2,-1,-1,2);
             //expected solutions at: (theta = 0, t = 1/3)
@@ -1053,7 +1059,11 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
             // expected solutions at: (theta = 0.644, t = 0.35)
             //                  and: (theta = pi/2, t = 0.75)
 
+            //TODO Calculate y values using calcYFromT
             
+            // make a line segment with theta, Y, R values
+
+            // figure out line segment start/end indexing or w/e
 
             // store the segments per layer
             layers[layer_nr].face_idx_to_segment_idx.insert(std::make_pair(mesh_idx, layers[layer_nr].segments.size()));

@@ -49,7 +49,7 @@ class CylSolver
 {
   public:
     realtype theta1, theta2;
-    realtype y1, y2;
+    realtype t1, t2;
     CylSolver(realtype R, realtype px1, realtype pz1, realtype px2, realtype pz2)
     {
         UserData data;
@@ -177,7 +177,7 @@ class CylSolver
         SolveIt(kmem, u, s, glstr, mset);
 
         theta1 = Ith(u, 1);
-        y1 = Ith(u, 2);
+        t1 = Ith(u, 2);
 
         // printf("\n------------------------------------------\n");
         // printf("\nInitial guess at p2 \n");
@@ -190,7 +190,7 @@ class CylSolver
         SolveIt(kmem, u, s, glstr, mset);
 
         theta2 = Ith(u, 1);
-        y2 = Ith(u, 2);
+        t2 = Ith(u, 2);
     }
 
     /*
