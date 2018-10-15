@@ -78,17 +78,16 @@ class CylSolver
         {
             data->lb[0] = theta1;
             data->ub[0] = theta2;
-            data->lb[1] = ZERO;
-            data->ub[1] = 1;
         }
         else
         {
             data->lb[0] = theta2;
             data->ub[0] = theta1;
-            data->lb[1] = ZERO;
-            data->ub[1] = 1;
         }
+
         //set lower and upper limits of t, t = 0 is p1 and t = 1 is p2
+        data->lb[1] = ZERO;
+        data->ub[1] = 1;
 
         data->px1[0] = data->px1[1] = px1;
         data->px2[0] = data->px2[1] = px2;
@@ -116,17 +115,8 @@ class CylSolver
         if (check_flag((void *)c, "N_VNew_Serial", 0))
             return;
 
-        //if (theta1 < theta2)
-        // set initial guesses to lower and upper bound
-        //{
-            SetInitialGuess1(u1, data);
-            SetInitialGuess2(u2, data);
-        // }
-        // else
-        // {
-        //     SetInitialGuess1(u2, data);
-        //     SetInitialGuess2(u1, data);
-        // }
+        SetInitialGuess1(u1, data);
+        SetInitialGuess2(u2, data);
 
         N_VConst_Serial(ONE, s); /* no scaling */
 
@@ -176,67 +166,27 @@ class CylSolver
         if (check_flag(&flag, "KINDlsSetLinearSolver", 1))
             return;
 
-        printf("\n------------------------------------------\n");
-        printf("\nInitial guess at p1\n");
-        printf("  [x1,x2] = ");
-        PrintOutput(u1);
+        // printf("\n------------------------------------------\n");
+        // printf("\nInitial guess at p1\n");
+        // printf("  [x1,x2] = ");
+        // PrintOutput(u1);
 
         N_VScale_Serial(ONE, u1, u);
         glstr = KIN_NONE;
         mset = 1;
-        SolveIt(kmem, u, s, glstr, mset);
-
-        /* --------------------------- */
-
-        N_VScale_Serial(ONE, u1, u);
-        glstr = KIN_LINESEARCH;
-        mset = 1;
-        SolveIt(kmem, u, s, glstr, mset);
-
-        /* --------------------------- */
-
-        N_VScale_Serial(ONE, u1, u);
-        glstr = KIN_NONE;
-        mset = 0;
-        SolveIt(kmem, u, s, glstr, mset);
-
-        /* --------------------------- */
-
-        N_VScale_Serial(ONE, u1, u);
-        glstr = KIN_LINESEARCH;
-        mset = 0;
         SolveIt(kmem, u, s, glstr, mset);
 
         theta1 = Ith(u, 1);
         y1 = Ith(u, 2);
-        printf("\n------------------------------------------\n");
-        printf("\nInitial guess at p2 \n");
-        printf("  [x1,x2] = ");
-        PrintOutput(u2);
-        N_VScale_Serial(ONE, u2, u);
-        glstr = KIN_NONE;
-        mset = 1;
-        SolveIt(kmem, u, s, glstr, mset);
 
-        /* --------------------------- */
-
-        N_VScale_Serial(ONE, u2, u);
-        glstr = KIN_LINESEARCH;
-        mset = 1;
-        SolveIt(kmem, u, s, glstr, mset);
-
-        /* --------------------------- */
+        // printf("\n------------------------------------------\n");
+        // printf("\nInitial guess at p2 \n");
+        // printf("  [x1,x2] = ");
+        // PrintOutput(u2);
 
         N_VScale_Serial(ONE, u2, u);
         glstr = KIN_NONE;
-        mset = 0;
-        SolveIt(kmem, u, s, glstr, mset);
-
-        /* --------------------------- */
-
-        N_VScale_Serial(ONE, u2, u);
-        glstr = KIN_LINESEARCH;
-        mset = 0;
+        mset = 1;
         SolveIt(kmem, u, s, glstr, mset);
 
         theta2 = Ith(u, 1);

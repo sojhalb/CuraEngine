@@ -1053,6 +1053,8 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
             // expected solutions at: (theta = 0.644, t = 0.35)
             //                  and: (theta = pi/2, t = 0.75)
 
+            
+
             // store the segments per layer
             layers[layer_nr].face_idx_to_segment_idx.insert(std::make_pair(mesh_idx, layers[layer_nr].segments.size()));
             s.faceIndex = mesh_idx;
