@@ -50,7 +50,7 @@ class CylSolver
   public:
     realtype theta1, theta2;
     realtype t1, t2;
-    CylSolver(realtype R, realtype px1, realtype pz1, realtype px2, realtype pz2)
+    CylSolver(Point3 p1, Point3 p2, realtype R)
     {
         UserData data;
         realtype fnormtol, scsteptol;
@@ -71,6 +71,10 @@ class CylSolver
 
         data = (UserData)malloc(sizeof *data);
         // set lower and upper limits for theta to theta1 and theta2
+        realtype px1 = p1.x;
+        realtype pz1 = p1.z;
+        realtype px2 = p2.x;
+        realtype pz2 = p2.z;
         theta1 = atan2(pz1, px1);
         theta2 = atan2(pz2, px2);
 
@@ -208,12 +212,17 @@ class CylSolver
     // expected solutions at: (theta = 0.644, t = 0.35)
     //                  and: (theta = pi/2, t = 0.75)
 
-    static realtype directCalcT(int32_t x1, int32_t z1, int32_t x2, int32_t z2, realtype theta)
+    static realtype directCalcT(Point3 p1, Point3 p2, realtype theta)
     {
         realtype A = sin(theta) / cos(theta);
-        realtype num = x1 - z1 * A;
-        realtype den = A * ((z2 - z1) - (x2 - x1));
+        realtype num = p1.x - p1.z * A;
+        realtype den = A * ((p2.z - p1.z) - (p2.x - p1.x));
         return num / den;
+    }
+
+    static realtype calcYFromT(Point3 p1, Point3, p2, realtype t)
+    {
+        return (p1.y + (p2.y - p1.y)*t);
     }
 
     /*

@@ -1089,15 +1089,24 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 //case 3.2
                 if (p0_R > r)
                 {
-                    // point 0 is out, run directS on p2p0 and p0p1
+                    // point 0 is out, run cs on p2p0 and p0p1
+                    CylSolver cs1 = new CylSolver(p2, p0, r);
+                    CylSolver cs2 = new CylSolver(p0, p1, r);
+                    SlicerSegment seg;
+                    seg.start.x = cs1.theta1;
+                    seg.start.y = CylSolver::calcYFromT(p2, p0, cs1.t1);
+                    seg.start.z = r;
+                    seg.end.x = cs2.theta1;
+                    seg.end.y = CylSolver::calcYFromT(p0,p1,cs2.t1);
+                    seg.end.z = r;
                 }
                 else if (p1_R > r)
                 {
-                    //point 1 is out, run directS on p0p1, p1p2
+                    //point 1 is out, run cs on p0p1, p1p2
                 }
                 else if (p2_R > r)
                 {
-                    //point 2 is out, run directS on p12, p2p0
+                    //point 2 is out, run cs on p12, p2p0
                 }
             }   // numPoints in == 2
             else if (numPointsIn == 1)
