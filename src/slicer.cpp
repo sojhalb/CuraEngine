@@ -1013,12 +1013,12 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
         Point3 p2 = v2.p;
 
         // find the minimum and maximum R value
-        int32_t p0_R = sqrt(p0.z^2 + p0.x ^ 2);
-        int32_t p1_R = sqrt(p1.z^2 + p1.x ^ 2);
-        int32_t p2_R = sqrt(p2.z^2 + p2.x ^ 2);
+        float p0_R = sqrt(p0.z^2 + p0.x ^ 2);
+        float p1_R = sqrt(p1.z^2 + p1.x ^ 2);
+        float p2_R = sqrt(p2.z^2 + p2.x ^ 2);
 
-        int32_t minR = p0_R;
-        int32_t maxR = p0_R;
+        float minR = p0_R;
+        float maxR = p0_R;
         if (p1_R < minR) minR = p1_R;
         if (p2_R < minR) minR = p2_R;
         if (p1_R > maxR) maxR = p1_R;
@@ -1026,20 +1026,20 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
 
         // find the perpendicular distance between triangle edges and the cyl_axis
 
-        int32_t delX = p1.x - p0.x;
-        int32_t delZ = p1.z - p0.z;
-        int32_t d_p0p1 = sqrt(2*(delX*delZ)^2) / sqrt(delZ^2 + delX^2);
+        double delX = p1.x - p0.x;
+        double delZ = p1.z - p0.z;
+        double d_p0p1 = sqrt(2*pow((delX*delZ),2) / sqrt(pow(delZ,2) + pow(delX,2)));
         delX = p2.x - p1.x;
         delZ = p2.z - p1.z;
-        int32_t d_p1p2 = sqrt(2*(delX*delZ)^2) / sqrt(delZ^2 + delX^2);
+        double d_p1p2 = sqrt(2*pow((delX*delZ),2) / sqrt(pow(delZ,2) + pow(delX,2)));
         delX = p0.x - p2.x;
         delZ = p0.z - p2.z;
-        int32_t d_p2p0 = sqrt(2*(delX*delZ)^2) / sqrt(delZ^2 + delX^2);
+        double d_p2p0 = sqrt(2*pow((delX*delZ),2) / sqrt(pow(delZ,2) + pow(delX,2)));
 
-        int32_t minD = d_p0p1;
+        double minD = d_p0p1;
         if (d_p1p2 < minD) minD = d_p1p2;
         if (d_p2p0 < minD) minD = d_p2p0;
-        int32_t maxD = d_p0p1;
+        double maxD = d_p0p1;
         if (d_p1p2 > maxD) maxD = d_p1p2;
         if (d_p2p0 > maxD) maxD = d_p2p0;
 
@@ -1051,7 +1051,7 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
             // current radius is below any points and distances
             if (r < minR && r < minD) continue; // I think is r < minD then r < minR is always true?
             if (r > maxR && r > maxD) continue; // weirdly not in the original engine source
-            
+
             SlicerSegment s;
             s.endVertex = nullptr;
             int end_edge_idx = -1;
