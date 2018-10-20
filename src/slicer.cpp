@@ -11,16 +11,16 @@
 
 #include "slicer.h"
 
-
-namespace cura {
-
-int largest_neglected_gap_first_phase = MM2INT(0.01); //!< distance between two line segments regarded as connected
-int largest_neglected_gap_second_phase = MM2INT(0.02); //!< distance between two line segments regarded as connected
-int max_stitch1 = MM2INT(10.0); //!< maximal distance stitched between open polylines to form polygons
-
-void SlicerLayer::makeBasicPolygonLoops(Polygons& open_polylines)
+namespace cura
 {
-    for(unsigned int start_segment_idx = 0; start_segment_idx < segments.size(); start_segment_idx++)
+
+int largest_neglected_gap_first_phase = MM2INT(0.01);  //!< distance between two line segments regarded as connected
+int largest_neglected_gap_second_phase = MM2INT(0.02); //!< distance between two line segments regarded as connected
+int max_stitch1 = MM2INT(10.0);                        //!< maximal distance stitched between open polylines to form polygons
+
+void SlicerLayer::makeBasicPolygonLoops(Polygons &open_polylines)
+{
+    for (unsigned int start_segment_idx = 0; start_segment_idx < segments.size(); start_segment_idx++)
     {
         if (!segments[start_segment_idx].addedToPolygon)
         {
@@ -31,15 +31,15 @@ void SlicerLayer::makeBasicPolygonLoops(Polygons& open_polylines)
     segments.clear();
 }
 
-void SlicerLayer::makeBasicPolygonLoop(Polygons& open_polylines, unsigned int start_segment_idx)
+void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, unsigned int start_segment_idx)
 {
 
     Polygon poly;
     poly.add(segments[start_segment_idx].start);
 
-    for (int segment_idx = start_segment_idx; segment_idx != -1; )
+    for (int segment_idx = start_segment_idx; segment_idx != -1;)
     {
-        SlicerSegment& segment = segments[segment_idx];
+        SlicerSegment &segment = segments[segment_idx];
         poly.add(segment.end);
         segment.addedToPolygon = true;
         segment_idx = getNextSegmentIdx(segment, start_segment_idx);
@@ -53,7 +53,7 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons& open_polylines, unsigned int st
     open_polylines.add(poly);
 }
 
-int SlicerLayer::tryFaceNextSegmentIdx(const SlicerSegment& segment, int face_idx, unsigned int start_segment_idx) const
+int SlicerLayer::tryFaceNextSegmentIdx(const SlicerSegment &segment, int face_idx, unsigned int start_segment_idx) const
 {
     decltype(face_idx_to_segment_idx.begin()) it;
     auto it_end = face_idx_to_segment_idx.end();
@@ -80,7 +80,7 @@ int SlicerLayer::tryFaceNextSegmentIdx(const SlicerSegment& segment, int face_id
     return -1;
 }
 
-int SlicerLayer::getNextSegmentIdx(const SlicerSegment& segment, unsigned int start_segment_idx)
+int SlicerLayer::getNextSegmentIdx(const SlicerSegment &segment, unsigned int start_segment_idx)
 {
     int next_segment_idx = -1;
 
@@ -118,7 +118,7 @@ int SlicerLayer::getNextSegmentIdx(const SlicerSegment& segment, unsigned int st
     return next_segment_idx;
 }
 
-void SlicerLayer::connectOpenPolylines(Polygons& open_polylines)
+void SlicerLayer::connectOpenPolylines(Polygons &open_polylines)
 {
     bool allow_reverse = false;
     // Search a bit fewer cells but at cost of covering more area.
@@ -127,7 +127,7 @@ void SlicerLayer::connectOpenPolylines(Polygons& open_polylines)
     connectOpenPolylinesImpl(open_polylines, largest_neglected_gap_second_phase, cell_size, allow_reverse);
 }
 
-void SlicerLayer::stitch(Polygons& open_polylines)
+void SlicerLayer::stitch(Polygons &open_polylines)
 {
     bool allow_reverse = true;
     connectOpenPolylinesImpl(open_polylines, max_stitch1, max_stitch1, allow_reverse);
@@ -135,7 +135,7 @@ void SlicerLayer::stitch(Polygons& open_polylines)
 
 const SlicerLayer::Terminus SlicerLayer::Terminus::INVALID_TERMINUS{~static_cast<Index>(0U)};
 
-bool SlicerLayer::PossibleStitch::operator<(const PossibleStitch& other) const
+bool SlicerLayer::PossibleStitch::operator<(const PossibleStitch &other) const
 {
     // better if lower distance
     if (dist2 > other.dist2)
@@ -181,7 +181,7 @@ bool SlicerLayer::PossibleStitch::operator<(const PossibleStitch& other) const
 
 std::priority_queue<SlicerLayer::PossibleStitch>
 SlicerLayer::findPossibleStitches(
-    const Polygons& open_polylines,
+    const Polygons &open_polylines,
     coord_t max_dist, coord_t cell_size,
     bool allow_reverse) const
 {
@@ -201,26 +201,27 @@ SlicerLayer::findPossibleStitches(
 
     struct StitchGridValLocator
     {
-        Point operator()(const StitchGridVal& val) const
+        Point operator()(const StitchGridVal &val) const
         {
             return val.polyline_term_pt;
         }
     };
 
     // Used to find nearby end points within a fixed maximum radius
-    SparsePointGrid<StitchGridVal,StitchGridValLocator> grid_ends(cell_size);
+    SparsePointGrid<StitchGridVal, StitchGridValLocator> grid_ends(cell_size);
     // Used to find nearby start points within a fixed maximum radius
-    SparsePointGrid<StitchGridVal,StitchGridValLocator> grid_starts(cell_size);
+    SparsePointGrid<StitchGridVal, StitchGridValLocator> grid_starts(cell_size);
 
     // populate grids
 
     // Inserts the ends of all polylines into the grid (does not
     //   insert the starts of the polylines).
-    for(unsigned int polyline_0_idx = 0; polyline_0_idx < open_polylines.size(); polyline_0_idx++)
+    for (unsigned int polyline_0_idx = 0; polyline_0_idx < open_polylines.size(); polyline_0_idx++)
     {
         ConstPolygonRef polyline_0 = open_polylines[polyline_0_idx];
 
-        if (polyline_0.size() < 1) continue;
+        if (polyline_0.size() < 1)
+            continue;
 
         StitchGridVal grid_val;
         grid_val.polyline_idx = polyline_0_idx;
@@ -231,11 +232,12 @@ SlicerLayer::findPossibleStitches(
     // Inserts the start of all polylines into the grid.
     if (allow_reverse)
     {
-        for(unsigned int polyline_0_idx = 0; polyline_0_idx < open_polylines.size(); polyline_0_idx++)
+        for (unsigned int polyline_0_idx = 0; polyline_0_idx < open_polylines.size(); polyline_0_idx++)
         {
             ConstPolygonRef polyline_0 = open_polylines[polyline_0_idx];
 
-            if (polyline_0.size() < 1) continue;
+            if (polyline_0.size() < 1)
+                continue;
 
             StitchGridVal grid_val;
             grid_val.polyline_idx = polyline_0_idx;
@@ -245,11 +247,12 @@ SlicerLayer::findPossibleStitches(
     }
 
     // search for nearby end points
-    for(unsigned int polyline_1_idx = 0; polyline_1_idx < open_polylines.size(); polyline_1_idx++)
+    for (unsigned int polyline_1_idx = 0; polyline_1_idx < open_polylines.size(); polyline_1_idx++)
     {
         ConstPolygonRef polyline_1 = open_polylines[polyline_1_idx];
 
-        if (polyline_1.size() < 1) continue;
+        if (polyline_1.size() < 1)
+            continue;
 
         std::vector<StitchGridVal> nearby_ends;
 
@@ -257,7 +260,7 @@ SlicerLayer::findPossibleStitches(
         // in natural order.  These are stitches that use the end of
         // polyline_0 and the start of polyline_1.
         nearby_ends = grid_ends.getNearby(polyline_1[0], max_dist);
-        for (const auto& nearby_end : nearby_ends)
+        for (const auto &nearby_end : nearby_ends)
         {
             Point diff = nearby_end.polyline_term_pt - polyline_1[0];
             int64_t dist2 = vSize2(diff);
@@ -277,7 +280,7 @@ SlicerLayer::findPossibleStitches(
             // by reversing order of polyline_1.  These are stitches that
             // use the end of polyline_0 and the end of polyline_1.
             nearby_ends = grid_ends.getNearby(polyline_1.back(), max_dist);
-            for (const auto& nearby_end : nearby_ends)
+            for (const auto &nearby_end : nearby_ends)
             {
                 // Disallow stitching with self with same end point
                 if (nearby_end.polyline_idx == polyline_1_idx)
@@ -302,7 +305,7 @@ SlicerLayer::findPossibleStitches(
             // use the start of polyline_0 and the start of polyline_1.
             std::vector<StitchGridVal> nearby_starts =
                 grid_starts.getNearby(polyline_1[0], max_dist);
-            for (const auto& nearby_start : nearby_starts)
+            for (const auto &nearby_start : nearby_starts)
             {
                 // Disallow stitching with self with same end point
                 if (nearby_start.polyline_idx == polyline_1_idx)
@@ -328,8 +331,8 @@ SlicerLayer::findPossibleStitches(
 }
 
 void SlicerLayer::planPolylineStitch(
-    const Polygons& open_polylines,
-    Terminus& terminus_0, Terminus& terminus_1, bool reverse[2]) const
+    const Polygons &open_polylines,
+    Terminus &terminus_0, Terminus &terminus_1, bool reverse[2]) const
 {
     size_t polyline_0_idx = terminus_0.getPolylineIdx();
     size_t polyline_1_idx = terminus_1.getPolylineIdx();
@@ -347,10 +350,12 @@ void SlicerLayer::planPolylineStitch(
             if (open_polylines[polyline_0_idx].size() <
                 open_polylines[polyline_1_idx].size())
             {
-                std::swap(terminus_0,terminus_1);
+                std::swap(terminus_0, terminus_1);
             }
             reverse[1] = true;
-        } else {
+        }
+        else
+        {
             // back of 0, front of 1
             // already in order, nothing to do
         }
@@ -361,7 +366,7 @@ void SlicerLayer::planPolylineStitch(
         {
             // front of 0, back of 1
             // in order if we swap 0 and 1
-            std::swap(terminus_0,terminus_1);
+            std::swap(terminus_0, terminus_1);
         }
         else
         {
@@ -371,41 +376,40 @@ void SlicerLayer::planPolylineStitch(
             if (open_polylines[polyline_0_idx].size() >
                 open_polylines[polyline_1_idx].size())
             {
-                std::swap(terminus_0,terminus_1);
+                std::swap(terminus_0, terminus_1);
             }
             reverse[0] = true;
         }
     }
 }
 
-void SlicerLayer::joinPolylines(PolygonRef& polyline_0, PolygonRef& polyline_1, const bool reverse[2]) const
+void SlicerLayer::joinPolylines(PolygonRef &polyline_0, PolygonRef &polyline_1, const bool reverse[2]) const
 {
     if (reverse[0])
     {
         // reverse polyline_0
         size_t size_0 = polyline_0.size();
-        for (size_t idx = 0U; idx != size_0/2; ++idx)
+        for (size_t idx = 0U; idx != size_0 / 2; ++idx)
         {
-            std::swap(polyline_0[idx], polyline_0[size_0-1-idx]);
+            std::swap(polyline_0[idx], polyline_0[size_0 - 1 - idx]);
         }
     }
     if (reverse[1])
     {
         // reverse polyline_1 by adding in reverse order
-        for(int poly_idx = polyline_1.size() - 1; poly_idx >= 0; poly_idx--)
+        for (int poly_idx = polyline_1.size() - 1; poly_idx >= 0; poly_idx--)
             polyline_0.add(polyline_1[poly_idx]);
     }
     else
     {
         // append polyline_1 onto polyline_0
-        for(Point& p : polyline_1)
+        for (Point &p : polyline_1)
             polyline_0.add(p);
     }
     polyline_1.clear();
 }
 
-SlicerLayer::TerminusTrackingMap::TerminusTrackingMap(Terminus::Index end_idx) :
-    m_terminus_old_to_cur_map(end_idx)
+SlicerLayer::TerminusTrackingMap::TerminusTrackingMap(Terminus::Index end_idx) : m_terminus_old_to_cur_map(end_idx)
 {
     // Initialize map to everything points to itself since nothing has moved yet.
     for (size_t idx = 0U; idx != end_idx; ++idx)
@@ -445,7 +449,7 @@ void SlicerLayer::TerminusTrackingMap::updateMap(
     }
 }
 
-void SlicerLayer::connectOpenPolylinesImpl(Polygons& open_polylines, coord_t max_dist, coord_t cell_size, bool allow_reverse)
+void SlicerLayer::connectOpenPolylinesImpl(Polygons &open_polylines, coord_t max_dist, coord_t cell_size, bool allow_reverse)
 {
     // below code closes smallest gaps first
 
@@ -524,11 +528,11 @@ void SlicerLayer::connectOpenPolylinesImpl(Polygons& open_polylines, coord_t max
                                   {best_polyline_0_idx, true}};
         if (reverse[0])
         {
-            std::swap(next_terms[0],next_terms[1]);
+            std::swap(next_terms[0], next_terms[1]);
         }
         if (reverse[1])
         {
-            std::swap(next_terms[2],next_terms[3]);
+            std::swap(next_terms[2], next_terms[3]);
         }
         // cur_terms -> next_terms has movement map
         // best_polyline_1 is always removed
@@ -537,14 +541,14 @@ void SlicerLayer::connectOpenPolylinesImpl(Polygons& open_polylines, coord_t max
     }
 }
 
-void SlicerLayer::stitch_extensive(Polygons& open_polylines)
+void SlicerLayer::stitch_extensive(Polygons &open_polylines)
 {
     //For extensive stitching find 2 open polygons that are touching 2 closed polygons.
     // Then find the shortest path over this polygon that can be used to connect the open polygons,
     // And generate a path over this shortest bit to link up the 2 open polygons.
     // (If these 2 open polygons are the same polygon, then the final result is a closed polyon)
 
-    while(1)
+    while (1)
     {
         unsigned int best_polyline_1_idx = -1;
         unsigned int best_polyline_2_idx = -1;
@@ -554,10 +558,11 @@ void SlicerLayer::stitch_extensive(Polygons& open_polylines)
         best_result.pointIdxA = -1;
         best_result.pointIdxB = -1;
 
-        for(unsigned int polyline_1_idx = 0; polyline_1_idx < open_polylines.size(); polyline_1_idx++)
+        for (unsigned int polyline_1_idx = 0; polyline_1_idx < open_polylines.size(); polyline_1_idx++)
         {
             PolygonRef polyline_1 = open_polylines[polyline_1_idx];
-            if (polyline_1.size() < 1) continue;
+            if (polyline_1.size() < 1)
+                continue;
 
             {
                 GapCloserResult res = findPolygonGapCloser(polyline_1[0], polyline_1.back());
@@ -569,10 +574,11 @@ void SlicerLayer::stitch_extensive(Polygons& open_polylines)
                 }
             }
 
-            for(unsigned int polyline_2_idx = 0; polyline_2_idx < open_polylines.size(); polyline_2_idx++)
+            for (unsigned int polyline_2_idx = 0; polyline_2_idx < open_polylines.size(); polyline_2_idx++)
             {
                 PolygonRef polyline_2 = open_polylines[polyline_2_idx];
-                if (polyline_2.size() < 1 || polyline_1_idx == polyline_2_idx) continue;
+                if (polyline_2.size() < 1 || polyline_1_idx == polyline_2_idx)
+                    continue;
 
                 GapCloserResult res = findPolygonGapCloser(polyline_1[0], polyline_2.back());
                 if (res.len > 0 && res.len < best_result.len)
@@ -596,9 +602,9 @@ void SlicerLayer::stitch_extensive(Polygons& open_polylines)
                 else if (best_result.AtoB)
                 {
                     PolygonRef poly = polygons.newPoly();
-                    for(unsigned int j = best_result.pointIdxA; j != best_result.pointIdxB; j = (j + 1) % polygons[best_result.polygonIdx].size())
+                    for (unsigned int j = best_result.pointIdxA; j != best_result.pointIdxB; j = (j + 1) % polygons[best_result.polygonIdx].size())
                         poly.add(polygons[best_result.polygonIdx][j]);
-                    for(unsigned int j = open_polylines[best_polyline_1_idx].size() - 1; int(j) >= 0; j--)
+                    for (unsigned int j = open_polylines[best_polyline_1_idx].size() - 1; int(j) >= 0; j--)
                         poly.add(open_polylines[best_polyline_1_idx][j]);
                     open_polylines[best_polyline_1_idx].clear();
                 }
@@ -606,7 +612,7 @@ void SlicerLayer::stitch_extensive(Polygons& open_polylines)
                 {
                     unsigned int n = polygons.size();
                     polygons.add(open_polylines[best_polyline_1_idx]);
-                    for(unsigned int j = best_result.pointIdxB; j != best_result.pointIdxA; j = (j + 1) % polygons[best_result.polygonIdx].size())
+                    for (unsigned int j = best_result.pointIdxB; j != best_result.pointIdxA; j = (j + 1) % polygons[best_result.polygonIdx].size())
                         polygons[n].add(polygons[best_result.polygonIdx][j]);
                     open_polylines[best_polyline_1_idx].clear();
                 }
@@ -615,26 +621,26 @@ void SlicerLayer::stitch_extensive(Polygons& open_polylines)
             {
                 if (best_result.pointIdxA == best_result.pointIdxB)
                 {
-                    for(unsigned int n=0; n<open_polylines[best_polyline_1_idx].size(); n++)
+                    for (unsigned int n = 0; n < open_polylines[best_polyline_1_idx].size(); n++)
                         open_polylines[best_polyline_2_idx].add(open_polylines[best_polyline_1_idx][n]);
                     open_polylines[best_polyline_1_idx].clear();
                 }
                 else if (best_result.AtoB)
                 {
                     Polygon poly;
-                    for(unsigned int n = best_result.pointIdxA; n != best_result.pointIdxB; n = (n + 1) % polygons[best_result.polygonIdx].size())
+                    for (unsigned int n = best_result.pointIdxA; n != best_result.pointIdxB; n = (n + 1) % polygons[best_result.polygonIdx].size())
                         poly.add(polygons[best_result.polygonIdx][n]);
-                    for(unsigned int n=poly.size()-1;int(n) >= 0; n--)
+                    for (unsigned int n = poly.size() - 1; int(n) >= 0; n--)
                         open_polylines[best_polyline_2_idx].add(poly[n]);
-                    for(unsigned int n=0; n<open_polylines[best_polyline_1_idx].size(); n++)
+                    for (unsigned int n = 0; n < open_polylines[best_polyline_1_idx].size(); n++)
                         open_polylines[best_polyline_2_idx].add(open_polylines[best_polyline_1_idx][n]);
                     open_polylines[best_polyline_1_idx].clear();
                 }
                 else
                 {
-                    for(unsigned int n = best_result.pointIdxB; n != best_result.pointIdxA; n = (n + 1) % polygons[best_result.polygonIdx].size())
+                    for (unsigned int n = best_result.pointIdxB; n != best_result.pointIdxA; n = (n + 1) % polygons[best_result.polygonIdx].size())
                         open_polylines[best_polyline_2_idx].add(polygons[best_result.polygonIdx][n]);
-                    for(unsigned int n = open_polylines[best_polyline_1_idx].size() - 1; int(n) >= 0; n--)
+                    for (unsigned int n = open_polylines[best_polyline_1_idx].size() - 1; int(n) >= 0; n--)
                         open_polylines[best_polyline_2_idx].add(open_polylines[best_polyline_1_idx][n]);
                     open_polylines[best_polyline_1_idx].clear();
                 }
@@ -666,11 +672,13 @@ GapCloserResult SlicerLayer::findPolygonGapCloser(Point ip0, Point ip1)
     {
         //Connection points are on the same line segment.
         ret.len = vSize(ip0 - ip1);
-    }else{
+    }
+    else
+    {
         //Find out if we have should go from A to B or the other way around.
         Point p0 = polygons[ret.polygonIdx][ret.pointIdxA];
         int64_t lenA = vSize(p0 - ip0);
-        for(unsigned int i = ret.pointIdxA; i != ret.pointIdxB; i = (i + 1) % polygons[ret.polygonIdx].size())
+        for (unsigned int i = ret.pointIdxA; i != ret.pointIdxB; i = (i + 1) % polygons[ret.polygonIdx].size())
         {
             Point p1 = polygons[ret.polygonIdx][i];
             lenA += vSize(p0 - p1);
@@ -680,7 +688,7 @@ GapCloserResult SlicerLayer::findPolygonGapCloser(Point ip0, Point ip1)
 
         p0 = polygons[ret.polygonIdx][ret.pointIdxB];
         int64_t lenB = vSize(p0 - ip1);
-        for(unsigned int i = ret.pointIdxB; i != ret.pointIdxA; i = (i + 1) % polygons[ret.polygonIdx].size())
+        for (unsigned int i = ret.pointIdxB; i != ret.pointIdxA; i = (i + 1) % polygons[ret.polygonIdx].size())
         {
             Point p1 = polygons[ret.polygonIdx][i];
             lenB += vSize(p0 - p1);
@@ -692,7 +700,9 @@ GapCloserResult SlicerLayer::findPolygonGapCloser(Point ip0, Point ip1)
         {
             ret.AtoB = true;
             ret.len = lenA;
-        }else{
+        }
+        else
+        {
             ret.AtoB = false;
             ret.len = lenB;
         }
@@ -703,10 +713,10 @@ GapCloserResult SlicerLayer::findPolygonGapCloser(Point ip0, Point ip1)
 ClosePolygonResult SlicerLayer::findPolygonPointClosestTo(Point input)
 {
     ClosePolygonResult ret;
-    for(unsigned int n=0; n<polygons.size(); n++)
+    for (unsigned int n = 0; n < polygons.size(); n++)
     {
-        Point p0 = polygons[n][polygons[n].size()-1];
-        for(unsigned int i=0; i<polygons[n].size(); i++)
+        Point p0 = polygons[n][polygons[n].size() - 1];
+        for (unsigned int i = 0; i < polygons[n].size(); i++)
         {
             Point p1 = polygons[n][i];
 
@@ -735,7 +745,7 @@ ClosePolygonResult SlicerLayer::findPolygonPointClosestTo(Point input)
     return ret;
 }
 
-void SlicerLayer::makePolygons(const Mesh* mesh, bool keep_none_closed, bool extensive_stitching, bool is_initial_layer)
+void SlicerLayer::makePolygons(const Mesh *mesh, bool keep_none_closed, bool extensive_stitching, bool is_initial_layer)
 {
     Polygons open_polylines;
 
@@ -795,9 +805,9 @@ void SlicerLayer::makePolygons(const Mesh* mesh, bool keep_none_closed, bool ext
     }
 }
 
-Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t thickness, const size_t slice_layer_count, bool keep_none_closed, bool extensive_stitching,
-               bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers)
-: mesh(mesh)
+Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t thickness, const size_t slice_layer_count, bool keep_none_closed, bool extensive_stitching,
+               bool use_variable_layer_heights, std::vector<AdaptiveLayer> *adaptive_layers)
+    : mesh(mesh)
 {
     SlicingTolerance slicing_tolerance = mesh->getSettingAsSlicingTolerance("slicing_tolerance");
 
@@ -837,10 +847,10 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
     for (unsigned int mesh_idx = 0; mesh_idx < mesh->faces.size(); mesh_idx++)
     {
         // get all vertices per face
-        const MeshFace& face = mesh->faces[mesh_idx];
-        const MeshVertex& v0 = mesh->vertices[face.vertex_index[0]];
-        const MeshVertex& v1 = mesh->vertices[face.vertex_index[1]];
-        const MeshVertex& v2 = mesh->vertices[face.vertex_index[2]];
+        const MeshFace &face = mesh->faces[mesh_idx];
+        const MeshVertex &v0 = mesh->vertices[face.vertex_index[0]];
+        const MeshVertex &v1 = mesh->vertices[face.vertex_index[1]];
+        const MeshVertex &v2 = mesh->vertices[face.vertex_index[2]];
 
         // get all vertices represented as 3D point
         Point3 p0 = v0.p;
@@ -850,17 +860,22 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
         // find the minimum and maximum z point
         int32_t minZ = p0.z;
         int32_t maxZ = p0.z;
-        if (p1.z < minZ) minZ = p1.z;
-        if (p2.z < minZ) minZ = p2.z;
-        if (p1.z > maxZ) maxZ = p1.z;
-        if (p2.z > maxZ) maxZ = p2.z;
+        if (p1.z < minZ)
+            minZ = p1.z;
+        if (p2.z < minZ)
+            minZ = p2.z;
+        if (p1.z > maxZ)
+            maxZ = p1.z;
+        if (p2.z > maxZ)
+            maxZ = p2.z;
 
         // calculate all intersections between a layer plane and a triangle
         for (unsigned int layer_nr = 0; layer_nr < layers.size(); layer_nr++)
         {
             int32_t z = layers.at(layer_nr).z;
 
-            if (z < minZ) continue;
+            if (z < minZ)
+                continue;
 
             SlicerSegment s;
             s.endVertex = nullptr;
@@ -924,17 +939,17 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
         }
     }
 
-    log("slice of mesh took %.3f seconds\n",slice_timer.restart());
+    log("slice of mesh took %.3f seconds\n", slice_timer.restart());
 
-    std::vector<SlicerLayer>& layers_ref = layers; // force layers not to be copied into the threads
+    std::vector<SlicerLayer> &layers_ref = layers; // force layers not to be copied into the threads
 
-#pragma omp parallel for default(none) shared(mesh,layers_ref) firstprivate(keep_none_closed, extensive_stitching)
-    for(unsigned int layer_nr=0; layer_nr<layers_ref.size(); layer_nr++)
+#pragma omp parallel for default(none) shared(mesh, layers_ref) firstprivate(keep_none_closed, extensive_stitching)
+    for (unsigned int layer_nr = 0; layer_nr < layers_ref.size(); layer_nr++)
     {
         layers_ref[layer_nr].makePolygons(mesh, keep_none_closed, extensive_stitching, layer_nr == 0);
     }
 
-    switch(slicing_tolerance)
+    switch (slicing_tolerance)
     {
     case SlicingTolerance::INCLUSIVE:
         for (unsigned int layer_nr = 0; layer_nr + 1 < layers_ref.size(); layer_nr++)
@@ -956,13 +971,13 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
     }
 
     mesh->expandXY(mesh->getSettingInMicrons("xy_offset"));
-    log("slice make polygons took %.3f seconds\n",slice_timer.restart());
+    log("slice make polygons took %.3f seconds\n", slice_timer.restart());
 }
 
-Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t thickness, const size_t slice_layer_count, bool keep_none_closed, bool extensive_stitching,
-               bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers, IntPoint cyl_axis) 
-               // added cyl_axis, for now it's assumed that it's a vertical line
-: mesh(mesh)
+Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t thickness, const size_t slice_layer_count, bool keep_none_closed, bool extensive_stitching,
+               bool use_variable_layer_heights, std::vector<AdaptiveLayer> *adaptive_layers, IntPoint cyl_axis)
+    // added cyl_axis, for now it's assumed that it's a vertical line
+    : mesh(mesh)
 {
     SlicingTolerance slicing_tolerance = mesh->getSettingAsSlicingTolerance("slicing_tolerance");
 
@@ -1002,10 +1017,10 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
     for (unsigned int mesh_idx = 0; mesh_idx < mesh->faces.size(); mesh_idx++)
     {
         // get all vertices per face
-        const MeshFace& face = mesh->faces[mesh_idx];
-        const MeshVertex& v0 = mesh->vertices[face.vertex_index[0]];
-        const MeshVertex& v1 = mesh->vertices[face.vertex_index[1]];
-        const MeshVertex& v2 = mesh->vertices[face.vertex_index[2]];
+        const MeshFace &face = mesh->faces[mesh_idx];
+        const MeshVertex &v0 = mesh->vertices[face.vertex_index[0]];
+        const MeshVertex &v1 = mesh->vertices[face.vertex_index[1]];
+        const MeshVertex &v2 = mesh->vertices[face.vertex_index[2]];
 
         // get all vertices represented as 3D point
         Point3 p0 = v0.p;
@@ -1013,9 +1028,9 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
         Point3 p2 = v2.p;
 
         // find the minimum and maximum R value
-        float p0_R = sqrt(p0.z^2 + p0.x ^ 2);
-        float p1_R = sqrt(p1.z^2 + p1.x ^ 2);
-        float p2_R = sqrt(p2.z^2 + p2.x ^ 2);
+        float p0_R = sqrt(p0.z ^ 2 + p0.x ^ 2);
+        float p1_R = sqrt(p1.z ^ 2 + p1.x ^ 2);
+        float p2_R = sqrt(p2.z ^ 2 + p2.x ^ 2);
 
         float minR = p0_R;
         float maxR = p0_R;
@@ -1028,13 +1043,13 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
 
         double delX = p1.x - p0.x;
         double delZ = p1.z - p0.z;
-        double d_p0p1 = sqrt(2*pow((delX*delZ),2) / sqrt(pow(delZ,2) + pow(delX,2)));
+        double d_p0p1 = sqrt(2 * pow((delX * delZ), 2) / sqrt(pow(delZ, 2) + pow(delX, 2)));
         delX = p2.x - p1.x;
         delZ = p2.z - p1.z;
-        double d_p1p2 = sqrt(2*pow((delX*delZ),2) / sqrt(pow(delZ,2) + pow(delX,2)));
+        double d_p1p2 = sqrt(2 * pow((delX * delZ), 2) / sqrt(pow(delZ, 2) + pow(delX, 2)));
         delX = p0.x - p2.x;
         delZ = p0.z - p2.z;
-        double d_p2p0 = sqrt(2*pow((delX*delZ),2) / sqrt(pow(delZ,2) + pow(delX,2)));
+        double d_p2p0 = sqrt(2 * pow((delX * delZ), 2) / sqrt(pow(delZ, 2) + pow(delX, 2)));
 
         double minD = d_p0p1;
         if (d_p1p2 < minD) minD = d_p1p2;
@@ -1049,32 +1064,123 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
             int32_t r = layers.at(layer_nr).z;
 
             // current radius is below any points and distances
-            if (r < minR && r < minD) continue; // I think is r < minD then r < minR is always true?
-            if (r > maxR && r > maxD) continue; // weirdly not in the original engine source
+            if (r < minR && r < minD)
+                continue; // I think is r < minD then r < minR is always true?
+            if (r > maxR && r > maxD)
+                continue; // weirdly not in the original engine source
+
+            int numPointsIn = 0;
+            if (p0_R < r) numPointsIn++;
+            if (p1_R < r) numPointsIn++;
+            if (p2_R < r) numPointsIn++;
+            assert(numPointsIn < 3);
+
+            int numEdgesIn = 0;
+            if (d_p0p1 < r) numEdgesIn++;
+            if (d_p1p2 < r) numEdgesIn++;
+            if (d_p2p0 < r) numEdgesIn++;
 
             SlicerSegment s;
             s.endVertex = nullptr;
             int end_edge_idx = -1;
 
-            //TODO: Determine which case a mesh is, and either 
-            //      use CylSolver to solve for angles or calcParamTDirect()
+            if (numPointsIn == 2)
+            {
+                //case 3.2
+                if (p0_R > r)
+                {
+                    // point 0 is out, run directS on p2p0 and p0p1
+                }
+                else if (p1_R > r)
+                {
+                    //point 1 is out, run directS on p0p1, p1p2
+                }
+                else if (p2_R > r)
+                {
+                    //point 2 is out, run directS on p12, p2p0
+                }
+            }   // numPoints in == 2
+            else if (numPointsIn == 1)
+            {
+                if (numEdgesIn == 0)
+                {
+                    // case 2.1
+                    if (p0_R < r)
+                    {
+                        // point 0 is in, run directS on p0p1, p2p0
+                    }
+                    else if (p1_R > r)
+                    {
+                        //point 1 is in, run directS on p1p2, p2p1
+                    }
+                    else if (p2_R > r)
+                    {
+                        //point 2 is in, run directS on p2p0, p1p2
+                    }
+                }
+                else if (numEdgesIn == 1)
+                {
+                    //case 3.1
+                    if (d_p0p1 < r) 
+                    {
+                        // edge p0p1 is in, run directS on p0p1, run cs on p1p2, p2p0
+                    }
+                    else if (d_p1p2 < r) 
+                    {
+                        // edge p1p2 is in, run directS on p1p2, run cs on p0p1, p1p2
+                    }
+                    else if (d_p2p0 < r)
+                    {
+                        // edge p2p0 is in, run directS on p2p0, run cs on p0p1, p1p2
+                    }
+                }
+                else
+                    assert(false); // should not happen
+            } // numPointsIn == 1
+            else if (numPointsIn == 0)
+            {
+                if (numEdgesIn == 1)
+                {
+                    //case 1.0
+                    if (d_p0p1 < r)
+                    {
+                        //edge p0p1 is in, run cs on p0p1
+                    }
+                    else if (d_p1p2 < r)
+                    {
+                        // edge p1p2 is in, run cs on p1p2
+                    }
+                    else if (d_p2p0 < r)
+                    {
+                        // edge p2p0 is in, run cs on p2p0
+                    }
+                }
+                else if (numEdgesIn == 2)
+                {
+                    //case 2.0
+                    if (d_p0p1 > r)
+                    {
+                        // edge p0p1 is out, run cs on p2p0, p1p2
+                    }
+                    else if (d_p1p2 > r)
+                    {
+                        // edge p1p2 is out, run cs on p0p1, p2p0
+                    }
+                    else if (d_p2p0 > r)
+                    {
+                        // edge p2p0 is out, run cs on p1p2, p0p1
+                    }
+                }
+                else if (numEdgesIn == 3)
+                {
+                // all edges in, run cs on p0p1, p1p2, p2p0
+                }
+                else
+                {
+                // the very rare completely surrounds cylinder case. still no plan
+                }
+            } // numPointsIn == 0
 
-            //TODO: Calculate intersections using CylSolver(R, x1, z1, x2, z2)
-            //solve for cylinder with triangle intersections
-            CylSolver* cs = new CylSolver(1,2,-1,-1,2);
-            //expected solutions at: (theta = 0, t = 1/3)
-            //                  and: (theta = pi/2, t = 2/3)
-
-            CylSolver* cs2 = new CylSolver(2,3,-4,-1,4);
-            // expected solutions at: (theta = 0.644, t = 0.35)
-            //                  and: (theta = pi/2, t = 0.75)
-
-            CylSolver* cs3 = new CylSolver(2,-1,4, 3, -4);
-            // expected solutions at: (theta = 0.644, t = 0.35)
-            //                  and: (theta = pi/2, t = 0.75)
-
-            //TODO Calculate y values using calcYFromT
-            
             // make a line segment with theta, Y, R values
 
             // figure out line segment start/end indexing or w/e
@@ -1088,17 +1194,17 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
         }
     }
 
-    log("slice of mesh took %.3f seconds\n",slice_timer.restart());
+    log("slice of mesh took %.3f seconds\n", slice_timer.restart());
 
-    std::vector<SlicerLayer>& layers_ref = layers; // force layers not to be copied into the threads
+    std::vector<SlicerLayer> &layers_ref = layers; // force layers not to be copied into the threads
 
-#pragma omp parallel for default(none) shared(mesh,layers_ref) firstprivate(keep_none_closed, extensive_stitching)
-    for(unsigned int layer_nr=0; layer_nr<layers_ref.size(); layer_nr++)
+#pragma omp parallel for default(none) shared(mesh, layers_ref) firstprivate(keep_none_closed, extensive_stitching)
+    for (unsigned int layer_nr = 0; layer_nr < layers_ref.size(); layer_nr++)
     {
         layers_ref[layer_nr].makePolygons(mesh, keep_none_closed, extensive_stitching, layer_nr == 0);
     }
 
-    switch(slicing_tolerance)
+    switch (slicing_tolerance)
     {
     case SlicingTolerance::INCLUSIVE:
         for (unsigned int layer_nr = 0; layer_nr + 1 < layers_ref.size(); layer_nr++)
@@ -1120,7 +1226,7 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
     }
 
     mesh->expandXY(mesh->getSettingInMicrons("xy_offset"));
-    log("slice make polygons took %.3f seconds\n",slice_timer.restart());
+    log("slice make polygons took %.3f seconds\n", slice_timer.restart());
 }
 
-}//namespace cura
+} //namespace cura

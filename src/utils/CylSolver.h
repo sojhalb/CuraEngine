@@ -193,6 +193,29 @@ class CylSolver
         t2 = Ith(u, 2);
     }
 
+    // test cases for cyl solver
+
+    //solve for cylinder with triangle intersections
+    //CylSolver* cs = new CylSolver(1,2,-1,-1,2);
+    //expected solutions at: (theta = 0, t = 1/3)
+    //                  and: (theta = pi/2, t = 2/3)
+
+    //CylSolver* cs2 = new CylSolver(2,3,-4,-1,4);
+    // expected solutions at: (theta = 0.644, t = 0.35)
+    //                  and: (theta = pi/2, t = 0.75)
+
+    //CylSolver* cs3 = new CylSolver(2,-1,4, 3, -4);
+    // expected solutions at: (theta = 0.644, t = 0.35)
+    //                  and: (theta = pi/2, t = 0.75)
+
+    static realtype directCalcT(int32_t x1, int32_t z1, int32_t x2, int32_t z2, realtype theta)
+    {
+        realtype A = sin(theta) / cos(theta);
+        realtype num = x1 - z1 * A;
+        realtype den = A * ((z2 - z1) - (x2 - x1));
+        return num / den;
+    }
+
     /*
  *--------------------------------------------------------------------
  * PRIVATE FUNCTIONS
@@ -391,6 +414,7 @@ class CylSolver
 
         return (0);
     }
+
 }; // class CylSolver
 
 } // namespace cura
