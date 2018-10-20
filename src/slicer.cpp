@@ -960,8 +960,8 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
 }
 
 Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t thickness, const size_t slice_layer_count, bool keep_none_closed, bool extensive_stitching,
-               bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers, IntPoint cyl_slice) 
-               // added cyl_slice, for now it's assumed that it's a vertical line
+               bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers, IntPoint cyl_axis) 
+               // added cyl_axis, for now it's assumed that it's a vertical line
 : mesh(mesh)
 {
     SlicingTolerance slicing_tolerance = mesh->getSettingAsSlicingTolerance("slicing_tolerance");
@@ -1008,39 +1008,53 @@ Slicer::Slicer(Mesh* mesh, const coord_t initial_layer_thickness, const coord_t 
         const MeshVertex& v2 = mesh->vertices[face.vertex_index[2]];
 
         // get all vertices represented as 3D point
-        Point3 pre0 = v0.p;
-        Point3 pre1 = v1.p;
-        Point3 pre2 = v2.p;
-
-        IntPoint pp0 {pre0.x, pre0.y};
-        IntPoint pp1 {pre1.x, pre1.y};
-        IntPoint pp2 {pre2.x, pre2.y};
-
-        //convert points to cylindrical
-        Point3 p0 = Point3( angle(pp0.p()), pre0.y, sqrt(pre0.x*pre0.x + pre0.y*pre0.y));
-        Point3 p1 = Point3( angle(pp1.p()), pre1.y, sqrt(pre1.x*pre1.x + pre1.y*pre1.y));
-        Point3 p2 = Point3( angle(pp2.p()), pre2.y, sqrt(pre2.x*pre2.x + pre2.y*pre2.y));
+        Point3 p0 = v0.p;
+        Point3 p1 = v1.p;
+        Point3 p2 = v2.p;
 
         // find the minimum and maximum R value
-        int32_t minR = p0.z;
-        int32_t maxR = p0.z;
-        if (p1.z < minR) minR = p1.z;
-        if (p2.z < minR) minR = p2.z;
-        if (p1.z > maxR) maxR = p1.z;
-        if (p2.z > maxR) maxR = p2.z;
+        int32_t p0_R = sqrt(p0.z^2 + p0.x ^ 2);
+        int32_t p1_R = sqrt(p1.z^2 + p1.x ^ 2);
+        int32_t p2_R = sqrt(p2.z^2 + p2.x ^ 2);
+
+        int32_t minR = p0_R;
+        int32_t maxR = p0_R;
+        if (p1_R < minR) minR = p1_R;
+        if (p2_R < minR) minR = p2_R;
+        if (p1_R > maxR) maxR = p1_R;
+        if (p2_R > maxR) maxR = p2_R;
+
+        // find the perpendicular distance between triangle edges and the cyl_axis
+
+        int32_t delX = p1.x - p0.x;
+        int32_t delZ = p1.z - p0.z;
+        int32_t d_p0p1 = sqrt(2*(delX*delZ)^2) / sqrt(delZ^2 + delX^2);
+        delX = p2.x - p1.x;
+        delZ = p2.z - p1.z;
+        int32_t d_p1p2 = sqrt(2*(delX*delZ)^2) / sqrt(delZ^2 + delX^2);
+        delX = p0.x - p2.x;
+        delZ = p0.z - p2.z;
+        int32_t d_p2p0 = sqrt(2*(delX*delZ)^2) / sqrt(delZ^2 + delX^2);
+
+        int32_t minD = d_p0p1;
+        if (d_p1p2 < minD) minD = d_p1p2;
+        if (d_p2p0 < minD) minD = d_p2p0;
+        int32_t maxD = d_p0p1;
+        if (d_p1p2 > maxD) maxD = d_p1p2;
+        if (d_p2p0 > maxD) maxD = d_p2p0;
 
         // calculate all intersections between a layer plane and a triangle
         for (unsigned int layer_nr = 0; layer_nr < layers.size(); layer_nr++)
         {
             int32_t r = layers.at(layer_nr).z;
 
-            //if (r < minR) continue;
-
+            // current radius is below any points and distances
+            if (r < minR && r < minD) continue; // I think is r < minD then r < minR is always true?
+            if (r > maxR && r > maxD) continue; // weirdly not in the original engine source
+            
             SlicerSegment s;
             s.endVertex = nullptr;
             int end_edge_idx = -1;
-
-            //TODO: Add distance detection to save expensive intersection calc
 
             //TODO: Determine which case a mesh is, and either 
             //      use CylSolver to solve for angles or calcParamTDirect()
