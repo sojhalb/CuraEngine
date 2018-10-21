@@ -1148,18 +1148,20 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 else if (numEdgesIn == 1)
                 {
                     //case 3.1, generates two line segments
-
+                    double start1_y, end1_y, start2_y, end2_y;
+                    CylSolver *cs1;
                     if (d_p0p1 < r) 
                     {
-                        // edge p0p1 is in, run directS on p0p1, run cs on p1p2, p2p0
+                        // edge p0p1 is in, p2  is in: run directS on p2p0, p1p2 run cs on p0p1
+                        
                     }
                     else if (d_p1p2 < r) 
                     {
-                        // edge p1p2 is in, run directS on p1p2, run cs on p0p1, p1p2
+                        // edge p1p2 is in, p0 is in, run directS on p0p1, p2p0 run cs on p1p2
                     }
                     else if (d_p2p0 < r)
                     {
-                        // edge p2p0 is in, run directS on p2p0, run cs on p0p1, p1p2
+                        // edge p2p0 is in, p1 is in, run directS on p1p2, p0p1, run cs on p2p0
                     }
                 }
                 else
