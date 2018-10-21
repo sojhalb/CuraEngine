@@ -196,6 +196,10 @@ class CylSolver
         theta2 = Ith(u, 1);
         t2 = Ith(u, 2);
     }
+    CylSolver ()
+    {
+        
+    }
 
     // test cases for cyl solver
 
@@ -220,7 +224,7 @@ class CylSolver
         return num / den;
     }
 
-    static realtype calcYFromT(Point3 p1, Point3, p2, realtype t)
+    static realtype calcYFromT(Point3 p1, Point3 p2, realtype t)
     {
         return (p1.y + (p2.y - p1.y)*t);
     }

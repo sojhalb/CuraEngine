@@ -1028,16 +1028,16 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
         Point3 p2 = v2.p;
 
         // find the minimum and maximum R value
-        float p0_R = sqrt(p0.z ^ 2 + p0.x ^ 2);
-        float p1_R = sqrt(p1.z ^ 2 + p1.x ^ 2);
-        float p2_R = sqrt(p2.z ^ 2 + p2.x ^ 2);
+        CylPoint3 cyl_p0 = p0.toCylPoint3();
+        CylPoint3 cyl_p1 = p1.toCylPoint3();
+        CylPoint3 cyl_p2 = p2.toCylPoint3();
 
-        float minR = p0_R;
-        float maxR = p0_R;
-        if (p1_R < minR) minR = p1_R;
-        if (p2_R < minR) minR = p2_R;
-        if (p1_R > maxR) maxR = p1_R;
-        if (p2_R > maxR) maxR = p2_R;
+        float minR = cyl_p0.r;
+        float maxR = cyl_p0.r;
+        if (cyl_p1.r < minR) minR = cyl_p1.r;
+        if (cyl_p2.r < minR) minR = cyl_p2.r;
+        if (cyl_p1.r > maxR) maxR = cyl_p1.r;
+        if (cyl_p2.r > maxR) maxR = cyl_p2.r;
 
         // find the perpendicular distance between triangle edges and the cyl_axis
 
@@ -1070,9 +1070,9 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 continue; // weirdly not in the original engine source
 
             int numPointsIn = 0;
-            if (p0_R < r) numPointsIn++;
-            if (p1_R < r) numPointsIn++;
-            if (p2_R < r) numPointsIn++;
+            if (cyl_p0.r < r) numPointsIn++;
+            if (cyl_p1.r < r) numPointsIn++;
+            if (cyl_p2.r < r) numPointsIn++;
             assert(numPointsIn < 3);
 
             int numEdgesIn = 0;
@@ -1087,49 +1087,68 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
             if (numPointsIn == 2)
             {
                 //case 3.2
-                if (p0_R > r)
+                CylSolver *cs1, *cs2;
+                double start_y, end_y;
+                if (cyl_p0.r > r)
                 {
                     // point 0 is out, run cs on p2p0 and p0p1
-                    CylSolver cs1 = new CylSolver(p2, p0, r);
-                    CylSolver cs2 = new CylSolver(p0, p1, r);
-                    SlicerSegment seg;
-                    seg.start.x = cs1.theta1;
-                    seg.start.y = CylSolver::calcYFromT(p2, p0, cs1.t1);
-                    seg.start.z = r;
-                    seg.end.x = cs2.theta1;
-                    seg.end.y = CylSolver::calcYFromT(p0,p1,cs2.t1);
-                    seg.end.z = r;
+                    cs1 = new CylSolver(p2, p0, r);
+                    cs2 = new CylSolver(p0, p1, r);
+                    start_y = CylSolver::calcYFromT(p2, p0, cs1->t1);
+                    end_y = CylSolver::calcYFromT(p0,p1,cs2->t1);
                 }
-                else if (p1_R > r)
+                else if (cyl_p1.r > r)
                 {
                     //point 1 is out, run cs on p0p1, p1p2
+                    cs1 = new CylSolver(p0, p1, r);
+                    cs2 = new CylSolver(p1, p2, r);
+                    start_y = CylSolver::calcYFromT(p0, p1, cs1->t1);
+                    end_y = CylSolver::calcYFromT(p1,p2,cs2->t1);
                 }
-                else if (p2_R > r)
+                else if (cyl_p2.r > r)
                 {
                     //point 2 is out, run cs on p12, p2p0
+                    cs1 = new CylSolver(p1, p2, r);
+                    cs2 = new CylSolver(p2, p0, r);
+                    start_y = CylSolver::calcYFromT(p1, p2, cs1->t1);
+                    end_y = CylSolver::calcYFromT(p2,p0,cs2->t1);
                 }
+
+                SlicerSegment seg;
+                seg.start.X = cs1->theta1;
+                seg.end.X = cs2->theta1;
+                seg.start.Y = start_y;
+                seg.end.Y = end_y;
             }   // numPoints in == 2
             else if (numPointsIn == 1)
             {
+                double start_y, end_y;
                 if (numEdgesIn == 0)
                 {
                     // case 2.1
-                    if (p0_R < r)
+                    if (cyl_p0.r < r)
                     {
                         // point 0 is in, run directS on p0p1, p2p0
+                        start_y = CylSolver::directCalcT(p0, p1, cyl_p0.theta);
+                        end_y = CylSolver::directCalcT(p2, p0, cyl_p2.theta);
                     }
-                    else if (p1_R > r)
+                    else if (cyl_p1.r > r)
                     {
-                        //point 1 is in, run directS on p1p2, p2p1
+                        //point 1 is in, run directS on p1p2, p0p1
+                        start_y = CylSolver::directCalcT(p1, p2, cyl_p2.theta);
+                        end_y = CylSolver::directCalcT(p0, p1, cyl_p0.theta);
                     }
-                    else if (p2_R > r)
+                    else if (cyl_p2.r > r)
                     {
                         //point 2 is in, run directS on p2p0, p1p2
+                        start_y = CylSolver::directCalcT(p2, p0, cyl_p0.theta);
+                        end_y = CylSolver::directCalcT(p1, p2, cyl_p1.theta);
                     }
                 }
                 else if (numEdgesIn == 1)
                 {
-                    //case 3.1
+                    //case 3.1, generates two line segments
+
                     if (d_p0p1 < r) 
                     {
                         // edge p0p1 is in, run directS on p0p1, run cs on p1p2, p2p0
