@@ -18,6 +18,20 @@ namespace cura
 
 using coord_t = ClipperLib::cInt;
 
+class CylPoint3 : Point3
+{
+  public:
+    coord_t theta, y, r;
+    CylPoint3(const coord_t _theta, const coord_t _y, const coord_t _r) : theta(_theta), y(_y), r(_r){};
+    Point3 toPoint3()
+    {
+        coord_t x = r * cos(theta);
+        coord_t z = r * sin(theta);
+        Point3 *p = new Point3(x, y, z);
+        return *p;
+    }
+};
+
 class Point3
 {
 public:
@@ -113,6 +127,14 @@ public:
     coord_t dot(const Point3& p) const
     {
         return x*p.x + y*p.y + z*p.z;
+    }
+
+    CylPoint3 toCylPoint3()
+    {
+        coord_t theta = atan2(y, x);
+        coord_t r = sqrt(pow(x,2) + pow(y,2));
+        CylPoint3 *p = new CylPoint3(theta, y, r);
+        return *p;
     }
 
 };
