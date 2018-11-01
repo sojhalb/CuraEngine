@@ -1062,6 +1062,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
         for (unsigned int layer_nr = 0; layer_nr < layers.size(); layer_nr++)
         {
             int32_t r = layers.at(layer_nr).z;
+            std::vector<Point3> points_on_cyl;
 
             // current radius is below any points and distances
             if (r < minR && r < minD)
@@ -1083,67 +1084,60 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
             SlicerSegment s;
             s.endVertex = nullptr;
             int end_edge_idx = -1;
+            CylSolver *cs1, *cs2;
 
             if (numPointsIn == 2)
             {
                 //case 3.2
-                CylSolver *cs1, *cs2;
-                double start_y, end_y;
                 if (cyl_p0.r > r)
                 {
                     // point 0 is out, run cs on p2p0 and p0p1
                     cs1 = new CylSolver(p2, p0, r);
                     cs2 = new CylSolver(p0, p1, r);
-                    start_y = CylSolver::calcYFromT(p2, p0, cs1->t1);
-                    end_y = CylSolver::calcYFromT(p0,p1,cs2->t1);
                 }
                 else if (cyl_p1.r > r)
                 {
                     //point 1 is out, run cs on p0p1, p1p2
                     cs1 = new CylSolver(p0, p1, r);
                     cs2 = new CylSolver(p1, p2, r);
-                    start_y = CylSolver::calcYFromT(p0, p1, cs1->t1);
-                    end_y = CylSolver::calcYFromT(p1,p2,cs2->t1);
                 }
                 else if (cyl_p2.r > r)
                 {
                     //point 2 is out, run cs on p12, p2p0
                     cs1 = new CylSolver(p1, p2, r);
                     cs2 = new CylSolver(p2, p0, r);
-                    start_y = CylSolver::calcYFromT(p1, p2, cs1->t1);
-                    end_y = CylSolver::calcYFromT(p2,p0,cs2->t1);
                 }
+                
+                points_on_cyl.push_back(*cs1->itx_p1);
+                points_on_cyl.push_back(*cs2->itx_p2);
 
-                SlicerSegment seg;
-                seg.start.X = cs1->theta1;
-                seg.end.X = cs2->theta1;
-                seg.start.Y = start_y;
-                seg.end.Y = end_y;
             }   // numPoints in == 2
             else if (numPointsIn == 1)
             {
-                double start_y, end_y;
                 if (numEdgesIn == 0)
                 {
                     // case 2.1
                     if (cyl_p0.r < r)
                     {
-                        // point 0 is in, run directS on p0p1, p2p0
-                        start_y = CylSolver::directCalcT(p0, p1, cyl_p0.theta);
-                        end_y = CylSolver::directCalcT(p2, p0, cyl_p2.theta);
+                        // point 0 is in, run cs on p0p1, p2p0, solutions will be equal for each cs
+                        cs1 = new CylSolver(p0, p1, r);
+                        cs2 = new CylSolver(p2, p0, r);
                     }
                     else if (cyl_p1.r > r)
                     {
                         //point 1 is in, run directS on p1p2, p0p1
-                        start_y = CylSolver::directCalcT(p1, p2, cyl_p2.theta);
-                        end_y = CylSolver::directCalcT(p0, p1, cyl_p0.theta);
+                        cs1 = new CylSolver(p1, p2, r);
+                        cs2 = new CylSolver(p0, p1, r);
                     }
                     else if (cyl_p2.r > r)
                     {
                         //point 2 is in, run directS on p2p0, p1p2
-                        start_y = CylSolver::directCalcT(p2, p0, cyl_p0.theta);
-                        end_y = CylSolver::directCalcT(p1, p2, cyl_p1.theta);
+                        cs1 = new CylSolver(p2, p0, r);
+                        cs2 = new CylSolver(p1, p2, r);
                     }
+                    
+                    points_on_cyl.push_back(*cs1->itx_p1);
+                    points_on_cyl.push_back(*cs2->itx_p2);
                 }
                 else if (numEdgesIn == 1)
                 {

@@ -50,6 +50,7 @@ class CylSolver
   public:
     realtype theta1, theta2;
     realtype t1, t2;
+    Point3* itx_p1, *itx_p2;
     CylSolver(Point3 p1, Point3 p2, realtype R)
     {
         UserData data;
@@ -195,6 +196,10 @@ class CylSolver
 
         theta2 = Ith(u, 1);
         t2 = Ith(u, 2);
+
+        itx_p1 = new Point3(theta1,calcYFromT(p1, p2, t1), R);
+        itx_p2 = new Point3(theta2,calcYFromT(p1,p2,t2), R);
+
     }
     CylSolver ()
     {
