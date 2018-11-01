@@ -1084,7 +1084,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
             SlicerSegment s;
             s.endVertex = nullptr;
             int end_edge_idx = -1;
-            CylSolver *cs1, *cs2;
+            CylSolver *cs1, *cs2, *cs3;
 
             if (numPointsIn == 2)
             {
@@ -1108,8 +1108,8 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                     cs2 = new CylSolver(p2, p0, r);
                 }
                 
-                points_on_cyl.push_back(*cs1->itx_p1);
-                points_on_cyl.push_back(*cs2->itx_p2);
+                points_on_cyl.push_back(*cs1->itx_either);
+                points_on_cyl.push_back(*cs2->itx_either);
 
             }   // numPoints in == 2
             else if (numPointsIn == 1)
@@ -1125,38 +1125,51 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                     }
                     else if (cyl_p1.r > r)
                     {
-                        //point 1 is in, run directS on p1p2, p0p1
+                        //point 1 is in
                         cs1 = new CylSolver(p1, p2, r);
                         cs2 = new CylSolver(p0, p1, r);
                     }
                     else if (cyl_p2.r > r)
                     {
-                        //point 2 is in, run directS on p2p0, p1p2
+                        //point 2 is in
                         cs1 = new CylSolver(p2, p0, r);
                         cs2 = new CylSolver(p1, p2, r);
                     }
-                    
-                    points_on_cyl.push_back(*cs1->itx_p1);
-                    points_on_cyl.push_back(*cs2->itx_p2);
+
+                    points_on_cyl.push_back(*cs1->itx_either);
+                    points_on_cyl.push_back(*cs2->itx_either);
                 }
                 else if (numEdgesIn == 1)
                 {
                     //case 3.1, generates two line segments
                     double start1_y, end1_y, start2_y, end2_y;
                     CylSolver *cs1;
-                    if (d_p0p1 < r) 
+                    if (d_p1p2 < r) 
                     {
-                        // edge p0p1 is in, p2  is in: run directS on p2p0, p1p2 run cs on p0p1
-                        
+                        //  edge p1p2 is in,p0 is in (hopefully), run cs on p0p1, p1p2, p2p0, make 1,2,1 points
+                        cs1 = new CylSolver(p0, p1, r);
+                        cs2 = new CylSolver(p1, p2, r);
+                        cs3 = new CylSolver(p2, p0, r);
                     }
-                    else if (d_p1p2 < r) 
+                    else if (d_p2p0 < r) 
                     {
-                        // edge p1p2 is in, p0 is in, run directS on p0p1, p2p0 run cs on p1p2
+                        // edge p2p0 is in,p1 is in (hopefully)
+                        cs1 = new CylSolver(p1, p2, r);
+                        cs2 = new CylSolver(p2, p0, r);
+                        cs3 = new CylSolver(p0, p1, r);
                     }
-                    else if (d_p2p0 < r)
-                    {
-                        // edge p2p0 is in, p1 is in, run directS on p1p2, p0p1, run cs on p2p0
+                    else if (d_p0p1 < r)
+                    {                        
+                        // edge p0p1 is in,p2 is in (hopefully)
+                        cs1 = new CylSolver(p2, p0, r);
+                        cs2 = new CylSolver(p0, p1, r);
+                        cs3 = new CylSolver(p1, p2, r);
                     }
+
+                    points_on_cyl.push_back(*cs1->itx_either);
+                    points_on_cyl.push_back(*cs2->itx_p1);
+                    points_on_cyl.push_back(*cs2->itx_p2);
+                    points_on_cyl.push_back(*cs3->itx_either);
                 }
                 else
                     assert(false); // should not happen
