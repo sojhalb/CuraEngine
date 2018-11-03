@@ -1028,9 +1028,9 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
         Point3 p2 = v2.p;
 
         // find the minimum and maximum R value
-        CylPoint3 cyl_p0 = *p0.toCylPoint3();
-        CylPoint3 cyl_p1 = *p1.toCylPoint3();
-        CylPoint3 cyl_p2 = *p2.toCylPoint3();
+        CylPoint3 cyl_p0 = *p0.cp;
+        CylPoint3 cyl_p1 = *p1.cp;
+        CylPoint3 cyl_p2 = *p2.cp;
 
         float minR = cyl_p0.r;
         float maxR = cyl_p0.r;

@@ -121,7 +121,9 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
     }
     else
     {
-        slice_layer_count = (storage.model_max.z - initial_layer_thickness) / layer_thickness + 2;
+        //TODO: fix since this doesn't actually give the max r
+        slice_layer_count = (storage.model_max.cp->r - initial_layer_thickness) / layer_thickness + 2;
+        //slice_layer_count = (storage.model_max.z - initial_layer_thickness) / layer_thickness + 2;
     }
 
     // Model is shallower than layer_height_0, so not even the first layer is sliced. Return an empty model then.

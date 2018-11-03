@@ -334,18 +334,6 @@ class CylSolver
     {
         int flag;
 
-        printf("\n");
-
-        if (mset == 1)
-            printf("Exact Newton");
-        else
-            printf("Modified Newton");
-
-        if (glstr == KIN_NONE)
-            printf("\n");
-        else
-            printf(" with line search\n");
-
         flag = KINSetMaxSetupCalls(kmem, mset);
         if (check_flag(&flag, "KINSetMaxSetupCalls", 1))
             return (1);
@@ -354,13 +342,40 @@ class CylSolver
         if (check_flag(&flag, "KINSol", 1))
             return (1);
 
-        printf("Solution:\n  [x1,x2] = ");
-        PrintOutput(u);
-
-        PrintFinalStats(kmem);
-
         return (0);
     }
+
+    // static int SolveIt(void *kmem, N_Vector u, N_Vector s, int glstr, int mset)
+    // {
+    //     int flag;
+
+    //     printf("\n");
+
+    //     if (mset == 1)
+    //         printf("Exact Newton");
+    //     else
+    //         printf("Modified Newton");
+
+    //     if (glstr == KIN_NONE)
+    //         printf("\n");
+    //     else
+    //         printf(" with line search\n");
+
+    //     flag = KINSetMaxSetupCalls(kmem, mset);
+    //     if (check_flag(&flag, "KINSetMaxSetupCalls", 1))
+    //         return (1);
+
+    //     flag = KINSol(kmem, u, glstr, s, s);
+    //     if (check_flag(&flag, "KINSol", 1))
+    //         return (1);
+
+    //     printf("Solution:\n  [x1,x2] = ");
+    //     PrintOutput(u);
+
+    //     PrintFinalStats(kmem);
+
+    //     return (0);
+    // }
 
     static void PrintOutput(N_Vector u)
     {

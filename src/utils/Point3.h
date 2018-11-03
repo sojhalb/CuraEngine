@@ -22,8 +22,9 @@ class Point3
 {
 public:
     coord_t x,y,z;
+    CylPoint3 * cp;
     Point3() {}
-    Point3(const coord_t _x, const coord_t _y, const coord_t _z): x(_x), y(_y), z(_z) {}
+    Point3(const coord_t _x, const coord_t _y, const coord_t _z): x(_x), y(_y), z(_z),cp(toCylPoint3()){}
 
     Point3 operator +(const Point3& p) const;
     Point3 operator -(const Point3& p) const;
