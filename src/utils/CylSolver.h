@@ -179,7 +179,8 @@ class CylSolver
         N_VScale_Serial(ONE, u1, u);
         glstr = KIN_NONE;
         mset = 1;
-        SolveIt(kmem, u, s, glstr, mset);
+        if( SolveIt(kmem, u, s, glstr, mset) )
+            printf("\n error from p1 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.x);
 
         theta1 = Ith(u, 1);
         t1 = Ith(u, 2);
@@ -192,7 +193,8 @@ class CylSolver
         N_VScale_Serial(ONE, u2, u);
         glstr = KIN_NONE;
         mset = 1;
-        SolveIt(kmem, u, s, glstr, mset);
+        if ( SolveIt(kmem, u, s, glstr, mset))
+            printf("\n error from p2 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.x);
 
         theta2 = Ith(u, 1);
         t2 = Ith(u, 2);

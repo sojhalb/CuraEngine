@@ -1098,7 +1098,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
             if (cyl_p0.r < r) numPointsIn++;
             if (cyl_p1.r < r) numPointsIn++;
             if (cyl_p2.r < r) numPointsIn++;
-            assert(numPointsIn < 3);
+            assert(numPointsIn <= 3);
 
             int numEdgesIn = 0;
             if (d_p0p1 < r) numEdgesIn++;
