@@ -1028,9 +1028,9 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
         Point3 p2 = v2.p;
 
         // find the minimum and maximum R value
-        CylPoint3 cyl_p0 = p0.toCylPoint3();
-        CylPoint3 cyl_p1 = p1.toCylPoint3();
-        CylPoint3 cyl_p2 = p2.toCylPoint3();
+        CylPoint3 cyl_p0 = *p0.toCylPoint3();
+        CylPoint3 cyl_p1 = *p1.toCylPoint3();
+        CylPoint3 cyl_p2 = *p2.toCylPoint3();
 
         float minR = cyl_p0.r;
         float maxR = cyl_p0.r;
@@ -1040,16 +1040,40 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
         if (cyl_p2.r > maxR) maxR = cyl_p2.r;
 
         // find the perpendicular distance between triangle edges and the cyl_axis
+        // TODO probably pack this into a function
 
         double delX = p1.x - p0.x;
         double delZ = p1.z - p0.z;
-        double d_p0p1 = sqrt(2 * pow((delX * delZ), 2) / sqrt(pow(delZ, 2) + pow(delX, 2)));
+        double dotcross = delX*p0.z - delZ*p0.x;
+        double mag = sqrt(pow(delZ,2) + pow(delX,2));
+
+        double d_p0p1; 
+        if (dotcross == 0 ) 
+            d_p0p1 = std::min(cyl_p0.r, cyl_p1.r);
+        else
+            d_p0p1 = dotcross / mag;
+
         delX = p2.x - p1.x;
         delZ = p2.z - p1.z;
-        double d_p1p2 = sqrt(2 * pow((delX * delZ), 2) / sqrt(pow(delZ, 2) + pow(delX, 2)));
+        dotcross = delX*p1.z - delZ*p1.x;
+        mag = sqrt(pow(delZ,2) + pow(delX,2));
+        
+        double d_p1p2; 
+        if (dotcross == 0 ) 
+            d_p1p2 = std::min(cyl_p1.r, cyl_p2.r);
+        else
+            d_p1p2 = dotcross / mag;
+
         delX = p0.x - p2.x;
         delZ = p0.z - p2.z;
-        double d_p2p0 = sqrt(2 * pow((delX * delZ), 2) / sqrt(pow(delZ, 2) + pow(delX, 2)));
+        dotcross = delX*p2.z - delZ*p2.x;
+        mag = sqrt(pow(delZ,2) + pow(delX,2));
+
+        double d_p2p0; 
+        if (dotcross == 0 ) 
+            d_p2p0 = std::min(cyl_p2.r, cyl_p0.r);
+        else
+            d_p2p0 = dotcross / mag;
 
         double minD = d_p0p1;
         if (d_p1p2 < minD) minD = d_p1p2;

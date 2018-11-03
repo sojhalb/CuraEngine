@@ -5,6 +5,24 @@
 
 namespace cura
 {
+// duct tape until the circular reference in CylPoint3 actually works
+CylPoint3* Point3::toCylPoint3()
+{
+    coord_t theta = atan2(y, x);
+    coord_t r = sqrt(pow(x,2) + pow(y,2));
+    CylPoint3* cp = new CylPoint3(theta,y, r);
+    return cp;
+    // x = theta;
+    // y = r;
+}
+
+// Point3* CylPoint3::toPoint3()
+//     {
+//         coord_t x = r * cos(theta);
+//         coord_t z = r * sin(theta);
+//         Point3 *p = new Point3(x, y, z);
+//         return *p;
+//     }
 
 Point3 Point3::operator +(const Point3& p) const
 {
