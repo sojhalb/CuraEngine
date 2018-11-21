@@ -76,7 +76,7 @@ unsigned int FffPolygonGenerator::getDraftShieldLayerCount(const unsigned int to
 bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeeper, SliceDataStorage& storage) /// slices the model
 {
     Progress::messageProgressStage(Progress::Stage::SLICING, &timeKeeper);
-    //todo update cyl_axis from arguments, for now it's set to the corner of the 40mm test cube
+    //todo replace local cyl_axis var with parameter inside of SliceDataStorage
     IntPoint cyl_axis = IntPoint{105000, 85000}; 
 
     storage.model_min = meshgroup->min();

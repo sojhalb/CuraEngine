@@ -165,13 +165,13 @@ void MeshGroup::finalize()
     }
 }
 
-bool loadMeshSTL_ascii(Mesh* mesh, const char* filename, const FMatrix3x3& matrix)
+bool loadMeshSTL_ascii(Mesh* mesh, const char* filename, const FMatrix3x3& matrix, IntPoint cyl_axis)
 {
     FILE* f = fopen(filename, "rt");
     char buffer[1024];
     FPoint3 vertex;
     int n = 0;
-    Point3 v0(0,0,0), v1(0,0,0), v2(0,0,0);
+    Point3 v0(0,0,0, cyl_axis.X, cyl_axis.Y), v1(0,0,0, cyl_axis.X, cyl_axis.Y), v2(0,0,0, cyl_axis.X, cyl_axis.Y);
     while(fgets_(buffer, sizeof(buffer), f))
     {
         if (sscanf(buffer, " vertex %f %f %f", &vertex.x, &vertex.y, &vertex.z) == 3)
@@ -198,7 +198,7 @@ bool loadMeshSTL_ascii(Mesh* mesh, const char* filename, const FMatrix3x3& matri
     return true;
 }
 
-bool loadMeshSTL_binary(Mesh* mesh, const char* filename, const FMatrix3x3& matrix)
+bool loadMeshSTL_binary(Mesh* mesh, const char* filename, const FMatrix3x3& matrix, IntPoint cyl_axis)
 {
     FILE* f = fopen(filename, "rb");
 
@@ -251,7 +251,7 @@ bool loadMeshSTL_binary(Mesh* mesh, const char* filename, const FMatrix3x3& matr
     return true;
 }
 
-bool loadMeshSTL(Mesh* mesh, const char* filename, const FMatrix3x3& matrix)
+bool loadMeshSTL(Mesh* mesh, const char* filename, const FMatrix3x3& matrix, IntPoint cyl_axis)
 {
     FILE* f = fopen(filename, "r");
     if (f == nullptr)
@@ -289,7 +289,7 @@ bool loadMeshSTL(Mesh* mesh, const char* filename, const FMatrix3x3& matrix)
     buffer[5] = '\0';
     if (stringcasecompare(buffer, "solid") == 0)
     {
-        bool load_success = loadMeshSTL_ascii(mesh, filename, matrix);
+        bool load_success = loadMeshSTL_ascii(mesh, filename, matrix, cyl_axis);
         if (!load_success)
             return false;
 
@@ -298,14 +298,14 @@ bool loadMeshSTL(Mesh* mesh, const char* filename, const FMatrix3x3& matrix)
         if (mesh->faces.size() < 1)
         {
             mesh->clear();
-            return loadMeshSTL_binary(mesh, filename, matrix);
+            return loadMeshSTL_binary(mesh, filename, matrix, cyl_axis);
         }
         return true;
     }
-    return loadMeshSTL_binary(mesh, filename, matrix);
+    return loadMeshSTL_binary(mesh, filename, matrix, cyl_axis);
 }
 
-bool loadMeshIntoMeshGroup(MeshGroup* meshgroup, const char* filename, const FMatrix3x3& transformation, SettingsBaseVirtual* object_parent_settings)
+bool loadMeshIntoMeshGroup(MeshGroup* meshgroup, const char* filename, const FMatrix3x3& transformation, SettingsBaseVirtual* object_parent_settings, IntPoint cyl_axis)
 {
     TimeKeeper load_timer;
 
@@ -313,7 +313,7 @@ bool loadMeshIntoMeshGroup(MeshGroup* meshgroup, const char* filename, const FMa
     if (ext && (strcmp(ext, ".stl") == 0 || strcmp(ext, ".STL") == 0))
     {
         Mesh mesh = object_parent_settings ? Mesh(object_parent_settings) : Mesh(meshgroup); //If we have object_parent_settings, use them as parent settings. Otherwise, just use meshgroup.
-        if(loadMeshSTL(&mesh,filename,transformation)) //Load it! If successful...
+        if(loadMeshSTL(&mesh,filename,transformation, cyl_axis)) //Load it! If successful...
         {
             meshgroup->meshes.push_back(mesh);
             log("loading '%s' took %.3f seconds\n",filename,load_timer.restart());

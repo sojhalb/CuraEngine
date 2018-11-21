@@ -6,11 +6,14 @@
 namespace cura
 {
 // duct tape until the circular reference in CylPoint3 actually works
-CylPoint3* Point3::toCylPoint3()
+CylPoint3* Point3::toCylPoint3(coord_t cyl_x, coord_t cyl_y)
 {
-    coord_t theta = atan2(y, x);
-    coord_t r = sqrt(pow(x,2) + pow(y,2));
-    CylPoint3* cp = new CylPoint3(theta,y, r);
+    //for now the cyl_axis is vertical (in line with Z axis)
+    coord_t rel_x = x - cyl_x;
+    coord_t rel_y = y - cyl_y;
+    coord_t theta = atan2(rel_y, rel_x);
+    coord_t r = sqrt(pow(rel_x,2) + pow(rel_y,2));
+    CylPoint3* cp = new CylPoint3(theta,rel_y, r);
     return cp;
     // x = theta;
     // y = r;

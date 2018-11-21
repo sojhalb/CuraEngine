@@ -94,6 +94,7 @@ bool FffProcessor::processMeshGroup(MeshGroup* meshgroup)
         
     } else 
     {
+        //the proper way to store the cyl_axis appears to be setting a parameter in SliceDataStorage, or rather the Settings class it inherits from
         SliceDataStorage storage(meshgroup);
 
         if (!polygon_generator.generateAreas(storage, meshgroup, time_keeper))

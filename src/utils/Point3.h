@@ -24,7 +24,7 @@ public:
     coord_t x,y,z;
     CylPoint3 * cp;
     Point3() {}
-    Point3(const coord_t _x, const coord_t _y, const coord_t _z): x(_x), y(_y), z(_z),cp(toCylPoint3()){}
+    Point3(const coord_t _x, const coord_t _y, const coord_t _z, coord_t cyl_x = 0, coord_t cyl_y = 0): x(_x), y(_y), z(_z),cp(toCylPoint3(cyl_x, cyl_y)){}
 
     Point3 operator +(const Point3& p) const;
     Point3 operator -(const Point3& p) const;
@@ -116,7 +116,7 @@ public:
         return x*p.x + y*p.y + z*p.z;
     }
 
-    CylPoint3* toCylPoint3();
+    CylPoint3* toCylPoint3(coord_t cyl_x, coord_t cyl_y);
 };
 
 class CylPoint3 

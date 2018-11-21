@@ -145,7 +145,8 @@ void slice(int argc, char **argv)
     FMatrix3x3 transformation; // the transformation applied to a model when loaded
                         
     MeshGroup* meshgroup = new MeshGroup(FffProcessor::getInstance());
-    
+    IntPoint cyl_axis = IntPoint{105000, 85000}; // todo replace with settings load and assignment
+
     int extruder_train_nr = 0;
 
 #ifdef _OPENMP
@@ -239,7 +240,7 @@ void slice(int argc, char **argv)
                         {
                             last_extruder_train = meshgroup->createExtruderTrain(0); // assume a json has already been provided on the command line
                         }
-                        if (!loadMeshIntoMeshGroup(meshgroup, argv[argn], transformation, last_extruder_train))
+                        if (!loadMeshIntoMeshGroup(meshgroup, argv[argn], transformation, last_extruder_train, cyl_axis))
                         {
                             logError("Failed to load model: %s\n", argv[argn]);
                             std::exit(1);
