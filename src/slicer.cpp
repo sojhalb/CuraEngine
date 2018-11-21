@@ -1086,7 +1086,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
         for (unsigned int layer_nr = 0; layer_nr < layers.size(); layer_nr++)
         {
             int32_t r = layers.at(layer_nr).z;
-            std::vector<Point3> points_on_cyl;
+            std::vector<Point> points_on_cyl;
 
             // current radius is below any points and distances
             if (r < minR && r < minD)
@@ -1270,8 +1270,14 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 }
             } // numPointsIn == 0
 
-            // make a line segment with theta, Y, R values
+            // make a line segments with theta, Y, R values
+            assert(points_on_cyl.size() % 2 == 0);
 
+            for (int line_seg_num = 0; line_seg_num < points_on_cyl.size(); line_seg_num += 2)
+            {
+                s.start = points_on_cyl[line_seg_num];
+                s.end = points_on_cyl[line_seg_num + 1];
+            }
             // figure out line segment start/end indexing or w/e
 
             // store the segments per layer

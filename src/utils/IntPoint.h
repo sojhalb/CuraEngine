@@ -46,6 +46,7 @@ public:
     int X, Y;
     Point p() { return Point(X, Y); }
 };
+
 #define POINT_MIN std::numeric_limits<ClipperLib::cInt>::min()
 #define POINT_MAX std::numeric_limits<ClipperLib::cInt>::max()
 
