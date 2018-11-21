@@ -76,6 +76,8 @@ unsigned int FffPolygonGenerator::getDraftShieldLayerCount(const unsigned int to
 bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeeper, SliceDataStorage& storage) /// slices the model
 {
     Progress::messageProgressStage(Progress::Stage::SLICING, &timeKeeper);
+    //todo update cyl_axis from arguments, for now it's set to the corner of the 40mm test cube
+    IntPoint cyl_axis = IntPoint{105000, 85000}; 
 
     storage.model_min = meshgroup->min();
     storage.model_max = meshgroup->max();
@@ -154,7 +156,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
                                     mesh.getSettingBoolean("meshfix_keep_open_polygons"),
                                     mesh.getSettingBoolean("meshfix_extensive_stitching"),
                                     use_variable_layer_heights, adaptive_layer_height_values,
-                                    IntPoint{0,0});
+                                    cyl_axis);
 
         slicerList.push_back(slicer);
 
