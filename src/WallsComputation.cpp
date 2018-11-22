@@ -21,7 +21,7 @@ WallsComputation::WallsComputation(int wall_0_inset, int line_width_0, int line_
  *
  * generateInsets only reads and writes data for the current layer
  */
-void WallsComputation::generateInsets(SliceLayerPart* part)
+void WallsComputation::generateInsets(SliceLayerPart* part, int r)
 {
     if (inset_count == 0)
     {
@@ -30,20 +30,31 @@ void WallsComputation::generateInsets(SliceLayerPart* part)
         return;
     }
 
+                //     Point flat_start;
+                // flat_start.X = r*points_on_cyl[line_seg_num].X; // confusing but this .X is actually theta
+                // flat_start.Y = points_on_cyl[line_seg_num].Y;
+
+                // Point flat_end;
+                // flat_end.X = r*points_on_cyl[line_seg_num + 1].X; // confusing but this .X is actually theta
+                // flat_end.Y = points_on_cyl[line_seg_num + 1].Y;
+
+                // s.start = flat_start;
+                // s.end = flat_end;
     for(size_t i = 0; i < inset_count; i++)
     {
         part->insets.push_back(Polygons());
         if (i == 0)
         {
-            part->insets[0] = part->outline.offset(-line_width_0 / 2 - wall_0_inset);
+            //previously offset rather than cyl_offset
+            part->insets[0] = part->outline.cyl_offset(-line_width_0 / 2 - wall_0_inset, r);
         }
         else if (i == 1)
         {
-            part->insets[1] = part->insets[0].offset(-line_width_0 / 2 + wall_0_inset - line_width_x / 2);
+            part->insets[1] = part->insets[0].cyl_offset(-line_width_0 / 2 + wall_0_inset - line_width_x / 2, r);
         }
         else
         {
-            part->insets[i] = part->insets[i - 1].offset(-line_width_x);
+            part->insets[i] = part->insets[i - 1].cyl_offset(-line_width_x, r);
         }
 
         const size_t inset_part_count = part->insets[i].size();
@@ -105,7 +116,7 @@ void WallsComputation::generateInsets(SliceLayer* layer)
 {
     for(unsigned int partNr = 0; partNr < layer->parts.size(); partNr++)
     {
-        generateInsets(&layer->parts[partNr]);
+        generateInsets(&layer->parts[partNr], layer->printZ);
     }
 
     //Remove the parts which did not generate an inset. As these parts are too small to print,

@@ -73,7 +73,7 @@ private:
      *
      * \param part The part for which to generate the insets.
      */
-    void generateInsets(SliceLayerPart* part);
+    void generateInsets(SliceLayerPart* part, int r);
 
 };
 }//namespace cura

@@ -1275,17 +1275,10 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
 
             for (int line_seg_num = 0; line_seg_num < points_on_cyl.size(); line_seg_num += 2)
             {
-                // segments are converted into "flat drum surface" coordinates so that offset still works
-                Point flat_start;
-                flat_start.X = r*points_on_cyl[line_seg_num].X; // confusing but this .X is actually theta
-                flat_start.Y = points_on_cyl[line_seg_num].Y;
-
-                Point flat_end;
-                flat_end.X = r*points_on_cyl[line_seg_num + 1].X; // confusing but this .X is actually theta
-                flat_end.Y = points_on_cyl[line_seg_num + 1].Y;
-
-                s.start = flat_start;
-                s.end = flat_end;
+                // segments are saved as theta, Y values.
+                // segments are converted into "flat drum surface" coordinates in WallsComputation
+                s.start = points_on_cyl[line_seg_num];
+                s.end = points_on_cyl[line_seg_num + 1];
             }
             // figure out line segment start/end indexing or w/e
 

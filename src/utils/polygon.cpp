@@ -280,6 +280,48 @@ Polygons Polygons::offset(int distance, ClipperLib::JoinType join_type, double m
     return ret;
 }
 
+Polygons Polygons::cyl_offset(int distance, int radius, ClipperLib::JoinType join_type, double miter_limit) const
+{
+    if (distance == 0)
+    {
+        return *this;
+    }
+
+    ClipperLib::Paths union_poly_paths = unionPolygons().paths;
+    ClipperLib::Paths flat_drum_paths;
+    for (int i = 0; i < union_poly_paths.size; i++)
+    {
+        //convert every point in the path to flat drum surface coordinates
+        ClipperLib::Path flat_drum_path;
+        for (int j = 0; j < union_poly_paths[i].size; j++)
+        {
+            flat_drum_path.push_back(Point(radius*union_poly_paths[i][j].X, union_poly_paths[i][j].Y));
+        }
+        flat_drum_paths.push_back(flat_drum_path);
+    }
+
+    Polygons ret;
+    ClipperLib::ClipperOffset clipper(miter_limit, 10.0);
+    clipper.AddPaths(flat_drum_paths, join_type, ClipperLib::etClosedPolygon);
+    clipper.MiterLimit = miter_limit;
+    clipper.Execute(ret.paths, distance);
+
+    ClipperLib::Paths radian_offset_paths;
+    //convert the offset points back into radians, somewhat ridiculous but the best we've got
+    for (int i = 0; i < ret.size; i++)
+    {
+        ClipperLib::Path radian_offset_path;
+        for (int j = 0; j < ret[i].size; j++)
+        {
+            radian_offset_path.push_back(Point(ret[i][j].X / radius, ret[i][j].Y));
+        }
+        radian_offset_paths.push_back(radian_offset_path);
+    }
+    ret.paths = radian_offset_paths;
+    
+    return ret;
+}
+
 Polygons ConstPolygonRef::offset(int distance, ClipperLib::JoinType join_type, double miter_limit) const
 {
     if (distance == 0)
