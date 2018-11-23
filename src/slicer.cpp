@@ -18,23 +18,23 @@ int largest_neglected_gap_first_phase = MM2INT(0.01);  //!< distance between two
 int largest_neglected_gap_second_phase = MM2INT(0.02); //!< distance between two line segments regarded as connected
 int max_stitch1 = MM2INT(10.0);                        //!< maximal distance stitched between open polylines to form polygons
 
-void SlicerLayer::makeBasicPolygonLoops(Polygons &open_polylines)
+void SlicerLayer::makeBasicPolygonLoops(Polygons &open_polylines, Digon& open_digon)
 {
     for (unsigned int start_segment_idx = 0; start_segment_idx < segments.size(); start_segment_idx++)
     {
         if (!segments[start_segment_idx].addedToPolygon)
         {
-            makeBasicPolygonLoop(open_polylines, start_segment_idx);
+            makeBasicPolygonLoop(open_polylines, open_digon, start_segment_idx);
         }
     }
     //Clear the segmentList to save memory, it is no longer needed after this point.
     segments.clear();
 }
 
-void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, unsigned int start_segment_idx)
+void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Digon &open_digon, unsigned int start_segment_idx)
 {
-
     Polygon poly;
+     // used to store the first edge of a digon while the 2nd is found
     poly.add(segments[start_segment_idx].start);
 
     float winding_radians = 0;
@@ -52,12 +52,28 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, unsigned int st
         segment_idx = getNextSegmentIdx(segment, start_segment_idx);
         if (segment_idx == static_cast<int>(start_segment_idx))
         { // polyon is closed
-            polygons.add(poly);
             //assuming max winding of 1
             if ((winding_radians - 2*PI) < 0.00001) // a very generous tolerance but it should be pretty close to 1
             {
                 //assumes that the last point added overlaps the first point, pretty sure this is the case
-                poly.back().X = poly.back().X + 2*PI;
+                //poly.back().X = poly.back().X + 2*PI; //might not be necessary
+                if (!open_digon.started)
+                {
+                    //no open digon, start one
+                    open_digon.setPoly1(poly);
+                }
+                else 
+                {
+                    // otherwise complete the digon 
+                    open_digon.setPoly2(poly);
+                    polygons.add(open_digon);
+                    open_digon.started = false; 
+                    // probably should not be reusing this one digon forever
+                }
+            }
+            else
+            {
+                polygons.add(poly);
             }
             return;
         }
@@ -761,8 +777,9 @@ ClosePolygonResult SlicerLayer::findPolygonPointClosestTo(Point input)
 void SlicerLayer::makePolygons(const Mesh *mesh, bool keep_none_closed, bool extensive_stitching, bool is_initial_layer)
 {
     Polygons open_polylines;
+    Digon open_digon;
 
-    makeBasicPolygonLoops(open_polylines);
+    makeBasicPolygonLoops(open_polylines, open_digon);
 
     connectOpenPolylines(open_polylines);
 
