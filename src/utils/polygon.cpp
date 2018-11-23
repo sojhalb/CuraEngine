@@ -289,11 +289,11 @@ Polygons Polygons::cyl_offset(int distance, int radius, ClipperLib::JoinType joi
 
     ClipperLib::Paths union_poly_paths = unionPolygons().paths;
     ClipperLib::Paths flat_drum_paths;
-    for (int i = 0; i < union_poly_paths.size; i++)
+    for (int i = 0; i < union_poly_paths.size(); i++)
     {
         //convert every point in the path to flat drum surface coordinates
         ClipperLib::Path flat_drum_path;
-        for (int j = 0; j < union_poly_paths[i].size; j++)
+        for (int j = 0; j < union_poly_paths[i].size(); j++)
         {
             flat_drum_path.push_back(Point(radius*union_poly_paths[i][j].X, union_poly_paths[i][j].Y));
         }
@@ -308,10 +308,10 @@ Polygons Polygons::cyl_offset(int distance, int radius, ClipperLib::JoinType joi
 
     ClipperLib::Paths radian_offset_paths;
     //convert the offset points back into radians, somewhat ridiculous but the best we've got
-    for (int i = 0; i < ret.size; i++)
+    for (int i = 0; i < ret.size(); i++)
     {
         ClipperLib::Path radian_offset_path;
-        for (int j = 0; j < ret[i].size; j++)
+        for (int j = 0; j < ret[i].size(); j++)
         {
             radian_offset_path.push_back(Point(ret[i][j].X / radius, ret[i][j].Y));
         }

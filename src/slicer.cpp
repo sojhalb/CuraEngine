@@ -37,15 +37,28 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, unsigned int st
     Polygon poly;
     poly.add(segments[start_segment_idx].start);
 
+    float winding_radians = 0;
     for (int segment_idx = start_segment_idx; segment_idx != -1;)
     {
         SlicerSegment &segment = segments[segment_idx];
         poly.add(segment.end);
+        float arc = segment.end.X - segment.start.X;
+        if (arc < 0)  // a VERY questionable condition that hamstrings quite a lot of slicing scenarios
+        {
+            arc += 2*PI; 
+        }
+        winding_radians += arc;
         segment.addedToPolygon = true;
         segment_idx = getNextSegmentIdx(segment, start_segment_idx);
         if (segment_idx == static_cast<int>(start_segment_idx))
         { // polyon is closed
             polygons.add(poly);
+            //assuming max winding of 1
+            if ((winding_radians - 2*PI) < 0.00001) // a very generous tolerance but it should be pretty close to 1
+            {
+                //assumes that the last point added overlaps the first point, pretty sure this is the case
+                poly.back().X = poly.back().X + 2*PI;
+            }
             return;
         }
     }
