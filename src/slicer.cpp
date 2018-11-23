@@ -57,6 +57,8 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Digon &open_dig
             {
                 //assumes that the last point added overlaps the first point, pretty sure this is the case
                 //poly.back().X = poly.back().X + 2*PI; //might not be necessary
+                // here is where you would make digons if you were making digons
+                // instead we will be adding a seam and treating everything as a non-wrapping polygon
                 if (!open_digon.started)
                 {
                     //no open digon, start one
@@ -66,7 +68,10 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Digon &open_dig
                 {
                     // otherwise complete the digon 
                     open_digon.setPoly2(poly);
-                    polygons.add(open_digon);
+                    //TODO add a seam
+                    // then make a new non-wrapping polygon
+                    // then add that polygon to polygons
+                    //polygons.add(open_digon);
                     open_digon.started = false; 
                     // probably should not be reusing this one digon forever
                 }
