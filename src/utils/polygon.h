@@ -584,30 +584,30 @@ public:
     }
 };
 
-class Digon : public Polygon
-{
-protected:
-    ClipperLib::Path poly1, poly2;
-    ClipperLib::Path combined_poly;
-public:
-    bool started, completed;
+// class Digon : public Polygon
+// {
+// protected:
+//     ClipperLib::Path poly1, poly2;
+//     ClipperLib::Path combined_poly;
+// public:
+//     bool started, completed;
 
-    void setPoly1 (ConstPolygonRef& poly)
-    {
-        poly1 = *poly.path;
-        combined_poly = *poly.path;
-    }
+//     void setPoly1 (ConstPolygonRef& poly)
+//     {
+//         poly1 = *poly.path;
+//         combined_poly = *poly.path;
+//     }
 
-    void setPoly2 (ConstPolygonRef& poly)
-    {
-        poly2 = *poly.path;
-        combined_poly.insert(combined_poly.end(), (*poly.path).begin(), (*poly.path).end() );
-    }
-    Digon() 
-    : Polygon(combined_poly) // SURE
-    {
-    }
-};
+//     void setPoly2 (ConstPolygonRef& poly)
+//     {
+//         poly2 = *poly.path;
+//         combined_poly.insert(combined_poly.end(), (*poly.path).begin(), (*poly.path).end() );
+//     }
+//     Digon() 
+//     : Polygon(combined_poly) // SURE
+//     {
+//     }
+// };
 
 class PolygonsPart;
 

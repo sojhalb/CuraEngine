@@ -71,7 +71,7 @@ protected:
      *
      * \param[in,out] open_polylines The polylines which are stiched, but couldn't be closed into a loop
      */
-    void makeBasicPolygonLoops(Polygons& open_polylines, Digon& open_digon);
+    void makeBasicPolygonLoops(Polygons& open_polylines, Polygon& open_digon);
 
     /*!
      * Connect the segments into a loop, starting from the segment with index \p start_segment_idx
@@ -79,7 +79,7 @@ protected:
      * \param[in,out] open_polylines The polylines which are stiched, but couldn't be closed into a loop
      * \param[in] start_segment_idx The index into SlicerLayer::segments for the first segment from which to start the polygon loop
      */
-    void makeBasicPolygonLoop(Polygons& open_polylines, Digon& open_digon, unsigned int start_segment_idx);
+    void makeBasicPolygonLoop(Polygons& open_polylines, Polygon& open_digon, unsigned int start_segment_idx);
 
     /*!
      * Get the next segment connected to the end of \p segment.

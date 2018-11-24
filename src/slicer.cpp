@@ -18,7 +18,7 @@ int largest_neglected_gap_first_phase = MM2INT(0.01);  //!< distance between two
 int largest_neglected_gap_second_phase = MM2INT(0.02); //!< distance between two line segments regarded as connected
 int max_stitch1 = MM2INT(10.0);                        //!< maximal distance stitched between open polylines to form polygons
 
-void SlicerLayer::makeBasicPolygonLoops(Polygons &open_polylines, Digon& open_digon)
+void SlicerLayer::makeBasicPolygonLoops(Polygons &open_polylines, Polygon& open_digon)
 {
     for (unsigned int start_segment_idx = 0; start_segment_idx < segments.size(); start_segment_idx++)
     {
@@ -31,7 +31,7 @@ void SlicerLayer::makeBasicPolygonLoops(Polygons &open_polylines, Digon& open_di
     segments.clear();
 }
 
-void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Digon &open_digon, unsigned int start_segment_idx)
+void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_digon, unsigned int start_segment_idx)
 {
     Polygon poly;
      // used to store the first edge of a digon while the 2nd is found
@@ -59,21 +59,30 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Digon &open_dig
                 //poly.back().X = poly.back().X + 2*PI; //might not be necessary
                 // here is where you would make digons if you were making digons
                 // instead we will be adding a seam and treating everything as a non-wrapping polygon
-                if (!open_digon.started)
+                if (!open_digon.empty())
                 {
                     //no open digon, start one
-                    open_digon.setPoly1(poly);
+                    *open_digon = *poly;
                 }
                 else 
                 {
-                    // otherwise complete the digon 
-                    open_digon.setPoly2(poly);
-                    //TODO add a seam
-                    // then make a new non-wrapping polygon
-                    // then add that polygon to polygons
-                    //polygons.add(open_digon);
-                    open_digon.started = false; 
-                    // probably should not be reusing this one digon forever
+                    // otherwise generate a seam and add the combined flattened polygon
+                    // hopefully first ring is CCW wrt the cyl_axis and 2nd ring is CW
+                    // just use the start of the first line seg of the first ring
+                    ClipperLib::IntPoint start_seam_pt = (*open_digon).at(0);
+                    //ClipperLib::IntPoint end_seam_pt = (*poly).at(0);
+                    // SlicerSegment seam1;//, seam2;
+                    // seam1.start = start_seam_pt;
+                    // seam1.end = end_seam_pt;
+                    // seam2.start = end_seam_pt;
+                    // seam2.end = start_seam_pt;
+
+                    //add seam 1 before the new poly (ring 2)
+                    (*poly).insert((*poly).begin(), start_seam_pt);
+                    //add seam 2 at the end of the new poly
+                    (*poly).push_back(start_seam_pt);
+                    // add the first ring to the end 
+                    (*poly).insert((*poly).end(), open_digon.begin(), open_digon.end());
                 }
             }
             else
@@ -782,7 +791,7 @@ ClosePolygonResult SlicerLayer::findPolygonPointClosestTo(Point input)
 void SlicerLayer::makePolygons(const Mesh *mesh, bool keep_none_closed, bool extensive_stitching, bool is_initial_layer)
 {
     Polygons open_polylines;
-    Digon open_digon;
+    Polygon open_digon;
 
     makeBasicPolygonLoops(open_polylines, open_digon);
 
