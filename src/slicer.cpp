@@ -1088,36 +1088,42 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
 
         double delX = p1.x - p0.x;
         double delZ = p1.z - p0.z;
-        double dotcross = delX*p0.z - delZ*p0.x;
+        double relX = p0.x - cyl_axis.X;
+        double relZ = p0.z - cyl_axis.Y; // cyl_axis is along Y axis so Y coordinate is cartesian Z
+        double dotcross = delX*relZ - delZ*relX;
         double mag = sqrt(pow(delZ,2) + pow(delX,2));
 
         double d_p0p1; 
         if (dotcross == 0 ) 
             d_p0p1 = std::min(cyl_p0.r, cyl_p1.r);
         else
-            d_p0p1 = dotcross / mag;
+            d_p0p1 = abs(dotcross / mag);
 
         delX = p2.x - p1.x;
         delZ = p2.z - p1.z;
-        dotcross = delX*p1.z - delZ*p1.x;
+        relX = p1.x - cyl_axis.X;
+        relZ = p1.z - cyl_axis.Y;
+        dotcross = delX*relZ - delZ*relX;
         mag = sqrt(pow(delZ,2) + pow(delX,2));
         
         double d_p1p2; 
         if (dotcross == 0 ) 
             d_p1p2 = std::min(cyl_p1.r, cyl_p2.r);
         else
-            d_p1p2 = dotcross / mag;
+            d_p1p2 = abs(dotcross / mag);
 
         delX = p0.x - p2.x;
         delZ = p0.z - p2.z;
-        dotcross = delX*p2.z - delZ*p2.x;
+        relX = p2.x - cyl_axis.X;
+        relZ = p2.z - cyl_axis.Y;
+        dotcross = delX*relZ - delZ*relX;
         mag = sqrt(pow(delZ,2) + pow(delX,2));
 
         double d_p2p0; 
         if (dotcross == 0 ) 
             d_p2p0 = std::min(cyl_p2.r, cyl_p0.r);
         else
-            d_p2p0 = dotcross / mag;
+            d_p2p0 = abs(dotcross / mag);
 
         double minD = d_p0p1;
         if (d_p1p2 < minD) minD = d_p1p2;
@@ -1186,7 +1192,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 if (numEdgesIn == 3)
                 {
                     //case 3.1, generates two line segments
-                    double start1_y, end1_y, start2_y, end2_y;
+                    coord_t start1_y, end1_y, start2_y, end2_y;
                     CylSolver *cs1;
                     if (d_p1p2 < r) 
                     {
