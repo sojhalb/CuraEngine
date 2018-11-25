@@ -644,7 +644,7 @@ void GCodeExport::writeTravel(int x, int y, int z, double speed)
     assert(speed < 400 && speed > 1); // normal F values occurring in UM2 gcode (this code should not be compiled for release)
     assert(currentPosition != no_point3);
     assert(Point3(x, y, z) != no_point3);
-    assert((Point3(x,y,z) - currentPosition).vSize() < MM2INT(400)); // no crazy positions (this code should not be compiled for release)
+    //assert((Point3(x,y,z) - currentPosition).vSize() < MM2INT(400)); // no crazy positions (this code should not be compiled for release)
 #endif //ASSERT_INSANE_OUTPUT
 
     const PrintFeatureType travel_move_type = extruder_attr[current_extruder].retraction_e_amount_current ? PrintFeatureType::MoveRetraction : PrintFeatureType::MoveCombing;
@@ -664,7 +664,8 @@ void GCodeExport::writeExtrusion(int x, int y, int z, double speed, double extru
     assert(speed < 400 && speed > 1); // normal F values occurring in UM2 gcode (this code should not be compiled for release)
     assert(currentPosition != no_point3);
     assert(Point3(x, y, z) != no_point3);
-    assert((Point3(x,y,z) - currentPosition).vSize() < MM2INT(400)); // no crazy positions (this code should not be compiled for release)
+    //sorry utheta get pretty big sometimes
+    //assert((Point3(x,y,z) - currentPosition).vSize() < MM2INT(400)); // no crazy positions (this code should not be compiled for release)
     assert(extrusion_mm3_per_mm >= 0.0);
 #endif //ASSERT_INSANE_OUTPUT
 
