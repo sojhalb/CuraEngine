@@ -58,11 +58,13 @@ class CylSolver
         UserData data;
         realtype fnormtol, scsteptol;
         N_Vector u1, u2, u, s, c;
+        bool itx1_fail, itx2_fail;
         int glstr, mset, flag;
         void *kmem;
         SUNMatrix J;
         SUNLinearSolver LS;
 
+        itx1_fail = itx2_fail = false;
         u1 = u2 = u = NULL;
         s = c = NULL;
         kmem = NULL;
@@ -78,8 +80,8 @@ class CylSolver
         realtype pz1 = p1.z;
         realtype px2 = p2.x;
         realtype pz2 = p2.z;
-        theta1 = atan2(pz1, px1);
-        theta2 = atan2(pz2, px2);
+        theta1 = atan2(pz1 - cyl_axis.Y, px1 - cyl_axis.X);
+        theta2 = atan2(pz2 - cyl_axis.Y, px2 - cyl_axis.X);
 
         if (theta1 < theta2)
         {
@@ -184,7 +186,10 @@ class CylSolver
         glstr = KIN_NONE;
         mset = 1;
         if( SolveIt(kmem, u, s, glstr, mset) )
-            printf("\n error from p1 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.x);
+        {
+            printf("\n error from p1 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+            itx1_fail = true;
+        }
 
         theta1 = Ith(u, 1);
         t1 = Ith(u, 2);
@@ -198,14 +203,31 @@ class CylSolver
         glstr = KIN_NONE;
         mset = 1;
         if ( SolveIt(kmem, u, s, glstr, mset))
-            printf("\n error from p2 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.x);
+        {
+            printf("\n error from p2 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+            itx2_fail = true;
+        }
 
         theta2 = Ith(u, 1);
         t2 = Ith(u, 2);
 
-        itx_p1 = new Point(theta1, calcYFromT(p1, p2, t1));
-        itx_p2 = new Point(theta2, calcYFromT(p1,p2,t2));
-        itx_either = itx_p1;
+        //format the points in utheta
+        itx_p1 = new Point(theta1 * 1000000, calcYFromT(p1, p2, t1));
+        itx_p2 = new Point(theta2 * 1000000, calcYFromT(p1,p2,t2));
+        
+        // for equal solutions often times the farther one will fail..?
+        if(itx1_fail && itx2_fail)
+        {
+            //assert(false);
+        }
+        else if (itx1_fail)
+        {
+            itx_either = itx_p2;
+        }
+        else 
+        {
+            itx_either = itx_p1;
+        }
 
     }
     CylSolver ()

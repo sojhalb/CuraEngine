@@ -13,8 +13,9 @@ CylPoint3* Point3::toCylPoint3(coord_t cyl_x, coord_t cyl_y)
     // then the actual y value of the cyl point is the same as the cartesian point 
     coord_t rel_x = x - cyl_x;
     coord_t rel_y = z - cyl_y;
-    coord_t theta = atan2(rel_y, rel_x);
+    coord_t theta = atan2(rel_y, rel_x) * 1000000; //we're using microtheta like micrometers
     coord_t r = sqrt(pow(rel_x,2) + pow(rel_y,2));
+    
     CylPoint3* cp = new CylPoint3(theta,y, r);
     return cp;
     // x = theta;
