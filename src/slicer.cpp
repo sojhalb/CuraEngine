@@ -1041,7 +1041,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
     else if (slicing_tolerance == SlicingTolerance::MIDDLE)
     {
         layers[0].z = initial_layer_thickness / 2 + drum_r;
-        adjusted_layer_offset = initial_layer_thickness + (thickness / 2);
+        adjusted_layer_offset = initial_layer_thickness + (thickness / 2) + drum_r;
     }
 
     // define all layer z positions (depending on slicing mode, see above)
@@ -1224,13 +1224,13 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                         cs1 = new CylSolver(p0, p1, r);
                         cs2 = new CylSolver(p2, p0, r);
                     }
-                    else if (cyl_p1.r > r)
+                    else if (cyl_p1.r < r)
                     {
                         //point 1 is in
                         cs1 = new CylSolver(p1, p2, r);
                         cs2 = new CylSolver(p0, p1, r);
                     }
-                    else if (cyl_p2.r > r)
+                    else if (cyl_p2.r < r)
                     {
                         //point 2 is in
                         cs1 = new CylSolver(p2, p0, r);
