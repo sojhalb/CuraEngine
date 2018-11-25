@@ -77,7 +77,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
 {
     Progress::messageProgressStage(Progress::Stage::SLICING, &timeKeeper);
     //todo replace local cyl_axis var with parameter inside of SliceDataStorage
-    IntPoint cyl_axis = IntPoint{105000, 85000}; 
+    IntPoint cyl_axis = IntPoint{105000, 0}; 
     coord_t drum_radius = 22040;
 
     storage.model_min = meshgroup->min();

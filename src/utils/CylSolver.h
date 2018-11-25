@@ -35,6 +35,8 @@ typedef struct
     realtype pz1[NVAR];
     realtype pz2[NVAR];
     realtype R[NVAR];
+    realtype cyl_axis_x[NVAR];
+    realtype cyl_axis_y[NVAR];
 } * UserData;
 
 /* Accessor macro */
@@ -51,7 +53,7 @@ class CylSolver
     realtype theta1, theta2;
     realtype t1, t2;
     Point* itx_p1, *itx_p2, *itx_either;
-    CylSolver(Point3 p1, Point3 p2, realtype R)
+    CylSolver(Point3 p1, Point3 p2, realtype R, IntPoint cyl_axis)
     {
         UserData data;
         realtype fnormtol, scsteptol;
@@ -99,6 +101,8 @@ class CylSolver
         data->pz1[0] = data->pz1[1] = pz1;
         data->pz2[0] = data->pz2[1] = pz2;
         data->R[0] = data->R[1] = R;
+        data ->cyl_axis_x[0] = data->cyl_axis_x[1] = cyl_axis.X;
+        data ->cyl_axis_y[0] = data->cyl_axis_y[1] = cyl_axis.Y;
 
         u1 = N_VNew_Serial(NEQ);
         if (check_flag((void *)u1, "N_VNew_Serial", 0))
@@ -418,7 +422,7 @@ class CylSolver
     {
         realtype *udata, *fdata;
         realtype x1, l1, L1, x2, l2, L2;
-        realtype *px1, *px2, *pz1, *pz2, *R;
+        realtype *px1, *px2, *pz1, *pz2, *R, *cyl_axis_x, *cyl_axis_y;
         realtype *lb, *ub;
         UserData data;
 
@@ -430,6 +434,8 @@ class CylSolver
         pz1 = data->pz1;
         pz2 = data->pz2;
         R = data->R;
+        cyl_axis_x = data-> cyl_axis_x;
+        cyl_axis_y = data-> cyl_axis_y;
 
         udata = N_VGetArrayPointer_Serial(u);
         fdata = N_VGetArrayPointer_Serial(f);
@@ -441,8 +447,8 @@ class CylSolver
         l2 = udata[4];
         L2 = udata[5];
 
-        fdata[0] = px1[0] + (px2[0] - px1[0]) * x2 - R[0] * cos(x1);
-        fdata[1] = pz1[0] + (pz2[0] - pz1[0]) * x2 - R[0] * sin(x1);
+        fdata[0] = px1[0] + (px2[0] - px1[0]) * x2 - ( R[0] * cos(x1) + cyl_axis_x[0]);
+        fdata[1] = pz1[0] + (pz2[0] - pz1[0]) * x2 - ( R[0] * sin(x1) + cyl_axis_y[0]);
         fdata[2] = l1 - x1 + lb[0];
         fdata[3] = L1 - x1 + ub[0];
         fdata[4] = l2 - x2 + lb[1];
