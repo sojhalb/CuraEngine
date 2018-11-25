@@ -1183,7 +1183,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
             else if (numPointsIn == 1)
             {
 
-                if (numEdgesIn == 1)
+                if (numEdgesIn == 3)
                 {
                     //case 3.1, generates two line segments
                     double start1_y, end1_y, start2_y, end2_y;
@@ -1215,7 +1215,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                     points_on_cyl.push_back(*cs2->itx_p2);
                     points_on_cyl.push_back(*cs3->itx_either);
                 }
-                else if (numEdgesIn == 0)
+                else if (numEdgesIn == 2)
                 {
                     // case 2.1
                     if (cyl_p0.r < r)
