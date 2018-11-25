@@ -78,10 +78,11 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
     Progress::messageProgressStage(Progress::Stage::SLICING, &timeKeeper);
     //todo replace local cyl_axis var with parameter inside of SliceDataStorage
     IntPoint cyl_axis = IntPoint{105000, 85000}; 
-    coord_t drum_radius = 23000;
+    coord_t drum_radius = 22040;
 
     storage.model_min = meshgroup->min();
     storage.model_max = meshgroup->max();
+    storage.model_max.updateCylPoint(cyl_axis.X, cyl_axis.Y); // the assignment op should handle this...
     storage.model_size = storage.model_max - storage.model_min;
 
     log("Slicing model...\n");
@@ -125,7 +126,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
     else
     {
         //TODO: fix since this doesn't actually give the max r
-        slice_layer_count = (storage.model_max.cp->r - initial_layer_thickness) / layer_thickness + 2;
+        slice_layer_count = (storage.model_max.cp->r - initial_layer_thickness - drum_radius) / layer_thickness + 2;
         //slice_layer_count = (storage.model_max.z - initial_layer_thickness) / layer_thickness + 2;
     }
 

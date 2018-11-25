@@ -144,7 +144,7 @@ void MeshGroup::finalize()
 
     //If the machine settings have been supplied, offset the given position vertices to the center of vertices (0,0,0) is at the bed center.
     Point3 meshgroup_offset(0, 0, 0);
-    IntPoint cyl_axis = {105000, 85000};
+    IntPoint cyl_axis = {105000, 0};
 
     if (!getSettingBoolean("machine_center_is_zero"))
     {
@@ -165,7 +165,7 @@ void MeshGroup::finalize()
         }
         mesh.offset(mesh_offset + meshgroup_offset);
 
-        for(auto v : mesh.vertices)
+        for(MeshVertex& v : mesh.vertices)
         {
             v.p.updateCylPoint(cyl_axis.X, cyl_axis.Y);
         }

@@ -1040,7 +1040,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
     }
     else if (slicing_tolerance == SlicingTolerance::MIDDLE)
     {
-        layers[0].z = initial_layer_thickness / 2;
+        layers[0].z = initial_layer_thickness / 2 + drum_r;
         adjusted_layer_offset = initial_layer_thickness + (thickness / 2);
     }
 
