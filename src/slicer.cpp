@@ -1019,7 +1019,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
 }
 
 Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t thickness, const size_t slice_layer_count, bool keep_none_closed, bool extensive_stitching,
-               bool use_variable_layer_heights, std::vector<AdaptiveLayer> *adaptive_layers, IntPoint cyl_axis)
+               bool use_variable_layer_heights, std::vector<AdaptiveLayer> *adaptive_layers, IntPoint cyl_axis, coord_t drum_r)
     // added cyl_axis, for now it's assumed that it's a vertical line
     : mesh(mesh)
 {

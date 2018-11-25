@@ -78,6 +78,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
     Progress::messageProgressStage(Progress::Stage::SLICING, &timeKeeper);
     //todo replace local cyl_axis var with parameter inside of SliceDataStorage
     IntPoint cyl_axis = IntPoint{105000, 85000}; 
+    coord_t drum_radius = 23000;
 
     storage.model_min = meshgroup->min();
     storage.model_max = meshgroup->max();
@@ -156,7 +157,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
                                     mesh.getSettingBoolean("meshfix_keep_open_polygons"),
                                     mesh.getSettingBoolean("meshfix_extensive_stitching"),
                                     use_variable_layer_heights, adaptive_layer_height_values,
-                                    cyl_axis);
+                                    cyl_axis, drum_radius);
 
         slicerList.push_back(slicer);
 
