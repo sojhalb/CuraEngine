@@ -47,7 +47,7 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
         {
             arc += 2*PI; 
         }
-        winding_radians += arc;
+        winding_radians += arc / 10000; // good old milli theta
         segment.addedToPolygon = true;
         segment_idx = getNextSegmentIdx(segment, start_segment_idx);
         if (segment_idx == static_cast<int>(start_segment_idx))
@@ -69,7 +69,13 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
                     // otherwise generate a seam and add the combined flattened polygon
                     // hopefully first ring is CCW wrt the cyl_axis and 2nd ring is CW
                     // just use the start of the first line seg of the first ring
+                    if((*open_digon).size() == 0)
+                    {
+                        assert(false);
+                    }
+
                     ClipperLib::IntPoint start_seam_pt = (*open_digon).at(0);
+
                     //ClipperLib::IntPoint end_seam_pt = (*poly).at(0);
                     // SlicerSegment seam1;//, seam2;
                     // seam1.start = start_seam_pt;

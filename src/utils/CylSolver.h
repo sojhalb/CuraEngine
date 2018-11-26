@@ -212,8 +212,8 @@ class CylSolver
         t2 = Ith(u, 2);
 
         //format the points in utheta
-        itx_p1 = new Point(theta1 * 1000000, calcYFromT(p1, p2, t1));
-        itx_p2 = new Point(theta2 * 1000000, calcYFromT(p1,p2,t2));
+        itx_p1 = new Point(theta1 * 10000, calcYFromT(p1, p2, t1));
+        itx_p2 = new Point(theta2 * 10000, calcYFromT(p1,p2,t2));
         
         // for equal solutions often times the farther one will fail..?
         if(itx1_fail && itx2_fail)
