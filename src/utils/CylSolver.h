@@ -57,6 +57,7 @@ class CylSolver
     {
         UserData data;
         realtype fnormtol, scsteptol;
+        bool solve_reverse = false;
         N_Vector u1, u2, u, s, c;
         bool itx1_fail, itx2_fail;
         int glstr, mset, flag;
@@ -88,10 +89,11 @@ class CylSolver
             data->lb[0] = theta1;
             data->ub[0] = theta2;
         }
-        else
+        else // p1 to p2 crosses X = 0 on left side
         {
             data->lb[0] = theta2;
             data->ub[0] = theta1;
+            solve_reverse = true; // so the point nearest p2 will be solved first
         }
 
         //set lower and upper limits of t, t = 0 is p1 and t = 1 is p2
@@ -210,11 +212,19 @@ class CylSolver
 
         theta2 = Ith(u, 1);
         t2 = Ith(u, 2);
+        //theta2 = atan2bounds(theta2);
 
         //format the points in utheta
         itx_p1 = new Point(theta1 * 10000, calcYFromT(p1, p2, t1));
         itx_p2 = new Point(theta2 * 10000, calcYFromT(p1,p2,t2));
         
+        if(solve_reverse)
+        {
+            auto temp = itx_p1;
+            itx_p1 = itx_p2;
+            itx_p2 = temp;
+        }
+
         // for equal solutions often times the farther one will fail..?
         if(itx1_fail && itx2_fail)
         {
@@ -477,6 +487,19 @@ class CylSolver
         fdata[5] = L2 - x2 + ub[1];
 
         return (0);
+    }
+
+    realtype atan2bounds (realtype theta)
+    {
+        while (theta < -PI)
+        {
+            theta += 2*PI;
+        }
+        while (theta > PI)
+        {
+            theta -= 2*PI;
+        }
+        return theta;
     }
 
 }; // class CylSolver

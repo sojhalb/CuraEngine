@@ -1158,7 +1158,6 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
             if (cyl_p0.r < r) numPointsIn++;
             if (cyl_p1.r < r) numPointsIn++;
             if (cyl_p2.r < r) numPointsIn++;
-            assert(numPointsIn <= 3);
 
             int numEdgesIn = 0;
             if (d_p0p1 < r) numEdgesIn++;
@@ -1339,15 +1338,14 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 // segments are converted into "flat drum surface" coordinates in WallsComputation
                 s.start = points_on_cyl[line_seg_num];
                 s.end = points_on_cyl[line_seg_num + 1];
-            }
-            // figure out line segment start/end indexing or w/e
 
-            // store the segments per layer
-            layers[layer_nr].face_idx_to_segment_idx.insert(std::make_pair(mesh_idx, layers[layer_nr].segments.size()));
-            s.faceIndex = mesh_idx;
-            s.endOtherFaceIdx = face.connected_face_index[end_edge_idx];
-            s.addedToPolygon = false;
-            layers[layer_nr].segments.push_back(s);
+                // store each segment
+                layers[layer_nr].face_idx_to_segment_idx.insert(std::make_pair(mesh_idx, layers[layer_nr].segments.size()));
+                s.faceIndex = mesh_idx;
+                s.endOtherFaceIdx = face.connected_face_index[end_edge_idx];
+                s.addedToPolygon = false;
+                layers[layer_nr].segments.push_back(s);
+            }
         }
     }
 
