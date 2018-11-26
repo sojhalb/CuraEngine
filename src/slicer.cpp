@@ -53,7 +53,7 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
         if (segment_idx == static_cast<int>(start_segment_idx))
         { // polyon is closed
             //assuming max winding of 1
-            if ((winding_radians - 2*PI) < 0.00001) // a very generous tolerance but it should be pretty close to 1
+            if ((winding_radians - 2*PI) < 0.00001 && (winding_radians - 2*PI) > 0) // a very generous tolerance but it should be pretty close to 1
             {
                 //assumes that the last point added overlaps the first point, pretty sure this is the case
                 //poly.back().X = poly.back().X + 2*PI; //might not be necessary
