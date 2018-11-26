@@ -521,6 +521,65 @@ public:
         return seg;
     }
 
+    coord_t dist2axis(Point3 p0, Point3 p1, IntPoint cyl_axis)
+    {
+        coord_t delX = p1.x - p0.x;
+        coord_t delZ = p1.z - p0.z;
+        coord_t relX = p0.x - cyl_axis.X;
+        coord_t relZ = p0.z - cyl_axis.Y; // cyl_axis is along Y axis so Y coordinate is cartesian Z
+        coord_t dotcross = delX*relZ - delZ*relX;
+        coord_t dist;
+
+        if(dotcross == 0)
+        {
+            // there's honestly so much of the same code there MUST be a way to shorten this
+            if(delX == 0 && delZ == 0) // lines are parallel
+            {
+                dist = std::min(p0.cp->r, p1.cp->r);
+            }
+            else // lines are not parallel but intersection could be outside of p0 to p1
+            {
+                if (delX != 0)
+                {
+                    //safe to calculate t from delX
+                    float t = ( cyl_axis.X - p0.x ) / delX;
+                    if (t >= 0 && t <= 1) // literally didn't even have a pipe key
+                    {
+                        // intersections is between p0 and p1, dist is 0
+                        dist = 0;
+                    }
+                    else
+                    {
+                        // otherwise it's the smaller radius of p0 and p1
+                        dist = std::min(p0.cp->r, p1.cp->r);
+                    }
+                }
+                else if (delZ != 0) // otherwise use delZ
+                {
+                    //safe to calculate t from delZ
+                    float t = ( cyl_axis.Y - p0.z ) / delZ;
+                    if (t >= 0 && t <= 1) // literally didn't even have a pipe key
+                    {
+                        // intersections is between p0 and p1, dist is 0
+                        dist = 0;
+                    }
+                    else
+                    {
+                        // otherwise it's the smaller radius of p0 and p1
+                        dist = std::min(p0.cp->r, p1.cp->r);
+                    }
+                }
+            }
+
+        }
+        else  //save the sqrt until we definitely need to do it
+        {
+            double mag = sqrt(pow(delZ,2) + pow(delX,2)); 
+            dist = abs(dotcross / mag);
+        }
+        return dist;
+    }
+
     void dumpSegmentsToHTML(const char* filename);
 };
 
