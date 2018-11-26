@@ -212,7 +212,6 @@ class CylSolver
 
         theta2 = Ith(u, 1);
         t2 = Ith(u, 2);
-        //theta2 = atan2bounds(theta2);
 
         //format the points in utheta
         itx_p1 = new Point(theta1 * 10000, calcYFromT(p1, p2, t1));

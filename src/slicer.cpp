@@ -993,7 +993,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
 
     std::vector<SlicerLayer> &layers_ref = layers; // force layers not to be copied into the threads
 
-#pragma omp parallel for default(none) shared(mesh, layers_ref) firstprivate(keep_none_closed, extensive_stitching)
+//#pragma omp parallel for default(none) shared(mesh, layers_ref) firstprivate(keep_none_closed, extensive_stitching)
     for (unsigned int layer_nr = 0; layer_nr < layers_ref.size(); layer_nr++)
     {
         layers_ref[layer_nr].makePolygons(mesh, keep_none_closed, extensive_stitching, layer_nr == 0);
@@ -1166,7 +1166,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
 
             SlicerSegment s;
             s.endVertex = nullptr;
-            int end_edge_idx = -1;
+            std::vector<int> end_edge_idxs;
             CylSolver *cs1, *cs2, *cs3;
 
             if (numPointsIn == 2)
@@ -1177,18 +1177,21 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                     // point 0 is out, run cs on p2p0 and p0p1
                     cs1 = new CylSolver(p2, p0, r, cyl_axis);
                     cs2 = new CylSolver(p0, p1, r, cyl_axis);
+                    end_edge_idxs.push_back(0);
                 }
                 else if (cyl_p1.r > r)
                 {
                     //point 1 is out, run cs on p0p1, p1p2
                     cs1 = new CylSolver(p0, p1, r, cyl_axis);
                     cs2 = new CylSolver(p1, p2, r, cyl_axis);
+                    end_edge_idxs.push_back(1);
                 }
                 else if (cyl_p2.r > r)
                 {
                     //point 2 is out, run cs on p12, p2p0
                     cs1 = new CylSolver(p1, p2, r, cyl_axis);
                     cs2 = new CylSolver(p2, p0, r, cyl_axis);
+                    end_edge_idxs.push_back(2);
                 }
                 
                 points_on_cyl.push_back(*cs1->itx_either);
