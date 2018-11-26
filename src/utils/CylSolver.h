@@ -216,13 +216,6 @@ class CylSolver
         //format the points in utheta
         itx_p1 = new Point(theta1 * 10000, calcYFromT(p1, p2, t1));
         itx_p2 = new Point(theta2 * 10000, calcYFromT(p1,p2,t2));
-        
-        if(solve_reverse)
-        {
-            auto temp = itx_p1;
-            itx_p1 = itx_p2;
-            itx_p2 = temp;
-        }
 
         // for equal solutions often times the farther one will fail..?
         if(itx1_fail && itx2_fail)
@@ -236,6 +229,14 @@ class CylSolver
         else 
         {
             itx_either = itx_p1;
+        }
+
+        // reverse the points after dealing with failed solvers
+        if(solve_reverse)
+        {
+            auto temp = itx_p1;
+            itx_p1 = itx_p2;
+            itx_p2 = temp;
         }
 
     }

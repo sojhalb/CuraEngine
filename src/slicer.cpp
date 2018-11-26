@@ -1212,6 +1212,8 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                         cs1 = new CylSolver(p0, p1, r, cyl_axis);
                         cs2 = new CylSolver(p1, p2, r, cyl_axis);
                         cs3 = new CylSolver(p2, p0, r, cyl_axis);
+                        end_edge_idxs.push_back(1);
+                        end_edge_idxs.push_back(2);
                     }
                     else if (d_p2p0 < r) 
                     {
@@ -1219,6 +1221,8 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                         cs1 = new CylSolver(p1, p2, r, cyl_axis);
                         cs2 = new CylSolver(p2, p0, r, cyl_axis);
                         cs3 = new CylSolver(p0, p1, r, cyl_axis);
+                        end_edge_idxs.push_back(2);
+                        end_edge_idxs.push_back(0);
                     }
                     else if (d_p0p1 < r)
                     {                        
@@ -1226,6 +1230,8 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                         cs1 = new CylSolver(p2, p0, r, cyl_axis);
                         cs2 = new CylSolver(p0, p1, r, cyl_axis);
                         cs3 = new CylSolver(p1, p2, r, cyl_axis);
+                        end_edge_idxs.push_back(0);
+                        end_edge_idxs.push_back(1);
                     }
 
                     points_on_cyl.push_back(*cs1->itx_either);
@@ -1241,18 +1247,21 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                         // point 0 is in, run cs on p0p1, p2p0, solutions will be equal for each cs
                         cs1 = new CylSolver(p0, p1, r, cyl_axis);
                         cs2 = new CylSolver(p2, p0, r, cyl_axis);
+                        end_edge_idxs.push_back(2);
                     }
                     else if (cyl_p1.r < r)
                     {
                         //point 1 is in
                         cs1 = new CylSolver(p1, p2, r, cyl_axis);
                         cs2 = new CylSolver(p0, p1, r, cyl_axis);
+                        end_edge_idxs.push_back(0);
                     }
                     else if (cyl_p2.r < r)
                     {
                         //point 2 is in
                         cs1 = new CylSolver(p2, p0, r, cyl_axis);
                         cs2 = new CylSolver(p1, p2, r, cyl_axis);
+                        end_edge_idxs.push_back(1);
                     }
 
                     points_on_cyl.push_back(*cs1->itx_either);
@@ -1276,6 +1285,9 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                     points_on_cyl.push_back(*cs3->itx_p1);
                     points_on_cyl.push_back(*cs3->itx_p2);
                     points_on_cyl.push_back(*cs1->itx_p1);
+                    end_edge_idxs.push_back(1);
+                    end_edge_idxs.push_back(2);
+                    end_edge_idxs.push_back(0);
                 }
 
                 else if (numEdgesIn == 2)
@@ -1284,20 +1296,26 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                     if (d_p0p1 > r)
                     {
                         // edge p0p1 is out, run cs on p2p0, p1p2
-                        cs1 = new CylSolver(p0, p1, r, cyl_axis);
+                        cs1 = new CylSolver(p1, p2, r, cyl_axis);
                         cs2 = new CylSolver(p2, p0, r, cyl_axis);
+                        end_edge_idxs.push_back(1);
+                        end_edge_idxs.push_back(2);
                     }
                     else if (d_p1p2 > r)
                     {
                         // edge p1p2 is out, run cs on p0p1, p2p0
-                        cs1 = new CylSolver(p1, p2, r, cyl_axis);
+                        cs1 = new CylSolver(p2, p0, r, cyl_axis);
                         cs2 = new CylSolver(p0, p1, r, cyl_axis);
+                        end_edge_idxs.push_back(2);
+                        end_edge_idxs.push_back(0);
                     }
                     else if (d_p2p0 > r)
                     {
                         // edge p2p0 is out, run cs on p1p2, p0p1
-                        cs1 = new CylSolver(p2, p0, r, cyl_axis);
+                        cs1 = new CylSolver(p0, p1, r, cyl_axis);
                         cs2 = new CylSolver(p1, p2, r, cyl_axis);
+                        end_edge_idxs.push_back(0);
+                        end_edge_idxs.push_back(1);
                     }
                     points_on_cyl.push_back(*cs1->itx_p2);
                     points_on_cyl.push_back(*cs2->itx_p1);
@@ -1312,19 +1330,22 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                     {
                         //edge p0p1 is in, run cs on p0p1
                         cs1 = new CylSolver(p0, p1, r, cyl_axis);
+                        end_edge_idxs.push_back(0);
                     }
                     else if (d_p1p2 < r)
                     {
                         // edge p1p2 is in, run cs on p1p2
                         cs1 = new CylSolver(p1, p2, r, cyl_axis);
+                        end_edge_idxs.push_back(1);
                     }
                     else if (d_p2p0 < r)
                     {
                         // edge p2p0 is in, run cs on p2p0
                         cs1 = new CylSolver(p2, p0, r, cyl_axis);
+                        end_edge_idxs.push_back(2);
                     }
-                    points_on_cyl.push_back(*cs1->itx_p1);
                     points_on_cyl.push_back(*cs1->itx_p2);
+                    points_on_cyl.push_back(*cs1->itx_p1);
                 }
                 else
                 {
@@ -1345,7 +1366,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 // store each segment
                 layers[layer_nr].face_idx_to_segment_idx.insert(std::make_pair(mesh_idx, layers[layer_nr].segments.size()));
                 s.faceIndex = mesh_idx;
-                s.endOtherFaceIdx = face.connected_face_index[end_edge_idx];
+                s.endOtherFaceIdx = face.connected_face_index[end_edge_idxs[line_seg_num / 2]];
                 s.addedToPolygon = false;
                 layers[layer_nr].segments.push_back(s);
             }
