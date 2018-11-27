@@ -20,6 +20,8 @@
                 "~/Downloads/40mmcube.stl",
                 "-o",
                 "${workspaceFolder}/output/test.gcode",
+                "-s",
+                "fill_perimeter_gaps=\"nowhere\"",
                 ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

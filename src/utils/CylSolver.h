@@ -85,17 +85,21 @@ class CylSolver
         theta_p1 = atan2(pz1 - cyl_axis.Y, px1 - cyl_axis.X);
         theta_p2 = atan2(pz2 - cyl_axis.Y, px2 - cyl_axis.X);
 
-        if (theta_p1 < theta_p2)
-        {
-            data->lb[0] = theta_p1;
-            data->ub[0] = theta_p2;
-        }
-        else // p1 to p2 crosses X = 0 on left side
-        {
-            data->lb[0] = theta_p2;
-            data->ub[0] = theta_p1;
-            solve_reverse = true; // so the point nearest p2 will be solved first
-        }
+        // if (theta_p1 < theta_p2)
+        // {
+        //     data->lb[0] = theta_p1;
+        //     data->ub[0] = theta_p2;
+        // }
+        // else // p1 to p2 crosses X = 0 on left side
+        // {
+        //     data->lb[0] = theta_p2;
+        //     data->ub[0] = theta_p1;
+        //     solve_reverse = true; // so the point nearest p2 will be solved first
+        // }
+        data->lb[0] = -2*PI;
+        data->ub[0] = 2*PI; // just let her rip
+
+        solve_reverse = theta2 < theta1;
 
         //set lower and upper limits of t, t = 0 is p1 and t = 1 is p2
         data->lb[1] = ZERO;
@@ -129,8 +133,8 @@ class CylSolver
         if (check_flag((void *)c, "N_VNew_Serial", 0))
             return;
 
-        SetInitialGuess1(u1, data);
-        SetInitialGuess2(u2, data);
+        SetInitialGuess1(u1, data, theta_p1, 0);
+        SetInitialGuess2(u2, data, theta_p2, 1);
 
         N_VConst_Serial(ONE, s); /* no scaling */
 
@@ -187,7 +191,7 @@ class CylSolver
 
         N_VScale_Serial(ONE, u1, u);
         glstr = KIN_LINESEARCH;
-        mset = 1;
+        mset = 0;
         if( SolveIt(kmem, u, s, glstr, mset) )
         {
             printf("\n error from p1 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
@@ -204,7 +208,7 @@ class CylSolver
 
         N_VScale_Serial(ONE, u2, u);
         glstr = KIN_LINESEARCH;
-        mset = 1;
+        mset = 0;
         if ( SolveIt(kmem, u, s, glstr, mset))
         {
             printf("\n error from p2 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
@@ -214,7 +218,12 @@ class CylSolver
         theta2 = Ith(u, 1);
         t2 = Ith(u, 2);
 
-        assert ( !(itx1_fail && itx2_fail) );
+        if (itx1_fail && itx2_fail)
+        {
+            PrintFinalStats(kmem);
+            assert(false);
+        }
+
 
         //format the points in utheta
         itx_p1 = new Point(theta1 * 10000, calcYFromT(p1, p2, t1));
@@ -286,7 +295,7 @@ class CylSolver
  * Initial guesses
  */
 
-    static void SetInitialGuess1(N_Vector u, UserData data)
+    static void SetInitialGuess1(N_Vector u, UserData data, realtype x1_init, realtype x2_init)
     {
         realtype x1, x2;
         realtype *udata;
@@ -299,8 +308,8 @@ class CylSolver
 
         /* There are two known solutions for this problem */
         /* this init. guess should take us to solution nearest p1 */
-        x1 = lb[0];
-        x2 = lb[1];
+        x1 = x1_init;
+        x2 = x2_init;
 
         udata[0] = x1;
         udata[1] = x2;
@@ -310,7 +319,7 @@ class CylSolver
         udata[5] = x2 - ub[1];
     }
 
-    static void SetInitialGuess2(N_Vector u, UserData data)
+    static void SetInitialGuess2(N_Vector u, UserData data, realtype x1_init, realtype x2_init)
     {
         realtype x1, x2;
         realtype *udata;
@@ -323,8 +332,8 @@ class CylSolver
 
         /* There are two known solutions for this problem */
         /* this init. guess should take us to solution nearest p2 */
-        x1 = ub[0];
-        x2 = ub[1];
+        x1 = x1_init;
+        x2 = x2_init;
 
         udata[0] = x1;
         udata[1] = x2;
