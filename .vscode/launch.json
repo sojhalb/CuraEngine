@@ -22,6 +22,8 @@
                 "${workspaceFolder}/output/test.gcode",
                 "-s",
                 "fill_perimeter_gaps=\"nowhere\"",
+                //"-s",
+                //"drum_radius=\"10000\""
                 ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
