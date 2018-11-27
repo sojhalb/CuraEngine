@@ -59,6 +59,7 @@ class CylSolver
         realtype fnormtol, scsteptol;
         bool solve_reverse = false;
         N_Vector u1, u2, u, s, c;
+        realtype theta_p1, theta_p2;
         bool itx1_fail, itx2_fail;
         int glstr, mset, flag;
         void *kmem;
@@ -81,18 +82,18 @@ class CylSolver
         realtype pz1 = p1.z;
         realtype px2 = p2.x;
         realtype pz2 = p2.z;
-        theta1 = atan2(pz1 - cyl_axis.Y, px1 - cyl_axis.X);
-        theta2 = atan2(pz2 - cyl_axis.Y, px2 - cyl_axis.X);
+        theta_p1 = atan2(pz1 - cyl_axis.Y, px1 - cyl_axis.X);
+        theta_p2 = atan2(pz2 - cyl_axis.Y, px2 - cyl_axis.X);
 
-        if (theta1 < theta2)
+        if (theta_p1 < theta_p2)
         {
-            data->lb[0] = theta1;
-            data->ub[0] = theta2;
+            data->lb[0] = theta_p1;
+            data->ub[0] = theta_p2;
         }
         else // p1 to p2 crosses X = 0 on left side
         {
-            data->lb[0] = theta2;
-            data->ub[0] = theta1;
+            data->lb[0] = theta_p2;
+            data->ub[0] = theta_p1;
             solve_reverse = true; // so the point nearest p2 will be solved first
         }
 
@@ -185,7 +186,7 @@ class CylSolver
         // PrintOutput(u1);
 
         N_VScale_Serial(ONE, u1, u);
-        glstr = KIN_NONE;
+        glstr = KIN_LINESEARCH;
         mset = 1;
         if( SolveIt(kmem, u, s, glstr, mset) )
         {
@@ -202,7 +203,7 @@ class CylSolver
         // PrintOutput(u2);
 
         N_VScale_Serial(ONE, u2, u);
-        glstr = KIN_NONE;
+        glstr = KIN_LINESEARCH;
         mset = 1;
         if ( SolveIt(kmem, u, s, glstr, mset))
         {
@@ -212,6 +213,8 @@ class CylSolver
 
         theta2 = Ith(u, 1);
         t2 = Ith(u, 2);
+
+        assert ( !(itx1_fail && itx2_fail) );
 
         //format the points in utheta
         itx_p1 = new Point(theta1 * 10000, calcYFromT(p1, p2, t1));
