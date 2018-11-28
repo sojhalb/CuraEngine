@@ -246,7 +246,8 @@ class CylSolver
         }
 
         // reverse the points after dealing with failed solvers
-        if(solve_reverse)
+        // expected t1 to be close to p1, t = 0, and t2 to be close to p2, t = 1
+        if( t1 > t2 )
         {
             auto temp = itx_p1;
             itx_p1 = itx_p2;

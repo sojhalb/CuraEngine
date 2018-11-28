@@ -1176,14 +1176,14 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 continue; // weirdly not in the original engine source
 
             int numPointsIn = 0;
-            if (cyl_p0.r < r) numPointsIn++;
-            if (cyl_p1.r < r) numPointsIn++;
-            if (cyl_p2.r < r) numPointsIn++;
+            if (cyl_p0.r <= r) numPointsIn++;
+            if (cyl_p1.r <= r) numPointsIn++;
+            if (cyl_p2.r <= r) numPointsIn++;
 
             int numEdgesIn = 0;
-            if (d_p0p1 < r) numEdgesIn++;
-            if (d_p1p2 < r) numEdgesIn++;
-            if (d_p2p0 < r) numEdgesIn++;
+            if (d_p0p1 <= r) numEdgesIn++;
+            if (d_p1p2 <= r) numEdgesIn++;
+            if (d_p2p0 <= r) numEdgesIn++;
 
             SlicerSegment s;
             s.endVertex = nullptr;
