@@ -4,6 +4,8 @@
 #ifndef UTILS_POINT3_H
 #define UTILS_POINT3_H
 
+#define THETAFACTOR 10000
+
 #include <cmath> //For sqrt.
 #include <iostream> //Auto-serialization.
 #include <limits> //For numeric_limits::min and max.

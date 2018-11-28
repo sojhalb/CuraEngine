@@ -21,10 +21,12 @@
 #define STOL RCONST(1.e-5) /* step tolerance */
 
 #define PI RCONST(3.1415926)
+#define PT5PI RCONST(1.5707963)
 #define ZERO RCONST(0.0)
 #define ONE RCONST(1.0)
 #define PT5 RCONST(0.5)
 #define TWO RCONST(2.0)
+#define THETAFACTOR 10000 // honestly I defined it twice
 
 typedef struct
 {
@@ -226,8 +228,8 @@ class CylSolver
 
 
         //format the points in utheta
-        itx_p1 = new Point(theta1 * 10000, calcYFromT(p1, p2, t1));
-        itx_p2 = new Point(theta2 * 10000, calcYFromT(p1,p2,t2));
+        itx_p1 = new Point(theta1 * THETAFACTOR, calcYFromT(p1, p2, t1));
+        itx_p2 = new Point(theta2 * THETAFACTOR, calcYFromT(p1,p2,t2));
 
         // for equal solutions often times the farther one will fail..?
         if(itx1_fail && itx2_fail)

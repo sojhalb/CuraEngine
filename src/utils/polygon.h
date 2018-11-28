@@ -347,6 +347,7 @@ class PolygonRef : public ConstPolygonRef
 {
     friend class PolygonPointer;
 public:
+    bool is_digon;
     PolygonRef(ClipperLib::Path& polygon)
     : ConstPolygonRef(polygon)
     {}
@@ -921,6 +922,9 @@ public:
         Polygons& thiss = *this;
         for (unsigned int p = 0; p < size(); p++)
         {
+            if (thiss[p].is_digon)
+                continue;
+
             thiss[p].simplify(smallest_line_segment_squared, allowed_error_distance_squared);
             if (thiss[p].size() < 3)
             {
@@ -1006,7 +1010,9 @@ public:
         {
             PolygonRef poly = thiss[poly_idx];
             Polygon result;
-            
+            if (thiss[poly_idx].is_digon)
+                continue;
+
             auto isDegenerate = [](Point& last, Point& now, Point& next)
             {
                 Point last_line = now - last;

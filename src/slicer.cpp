@@ -42,27 +42,38 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
     {
         SlicerSegment &segment = segments[segment_idx];
         poly.add(segment.end);
-        float arc = segment.end.X - segment.start.X;
-        if (arc < 0)  // a VERY questionable condition that hamstrings quite a lot of slicing scenarios
+        // segment goes over the LHS sign change
+        coord_t seg_start = segment.start.X;
+        coord_t seg_end = segment.end.X;
+        if (segment.start.X > (PT5PI * THETAFACTOR) && segment.end.X < 0)
         {
-            arc += 2*PI; 
+            seg_end += 2*PI * THETAFACTOR;
         }
-        winding_radians += arc / 10000; // good old milli theta
+        else if (segment.end.X > (PT5PI * THETAFACTOR) && segment.start.X < 0)
+        {
+            seg_start += 2*PI *THETAFACTOR;
+        }
+
+        float arc = seg_end - seg_start;
+        if (abs(abs(arc) - ( PI * THETAFACTOR )) < 100 && abs(abs(arc) - ( PI * THETAFACTOR )) > 0) // just get kinda close to PI
+        {
+            arc = abs(arc); //sure
+        }
+        winding_radians += arc / THETAFACTOR; // good old milli theta
         segment.addedToPolygon = true;
         segment_idx = getNextSegmentIdx(segment, start_segment_idx);
         if (segment_idx == static_cast<int>(start_segment_idx))
         { // polyon is closed
             //assuming max winding of 1
-            if ((winding_radians - 2*PI) < 0.00001 && (winding_radians - 2*PI) > 0) // a very generous tolerance but it should be pretty close to 1
+            if (abs(winding_radians - 2*PI) < 0.001 && abs(winding_radians - 2*PI) > 0) // a very generous tolerance but it should be pretty close to 1
             {
-                //assumes that the last point added overlaps the first point, pretty sure this is the case
-                //poly.back().X = poly.back().X + 2*PI; //might not be necessary
                 // here is where you would make digons if you were making digons
                 // instead we will be adding a seam and treating everything as a non-wrapping polygon
-                if (!open_digon.empty())
+                if (open_digon.empty())
                 {
                     //no open digon, start one
                     *open_digon = *poly;
+                    winding_radians = 0;
                 }
                 else 
                 {
@@ -88,7 +99,9 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
                     //add seam 2 at the end of the new poly
                     (*poly).push_back(start_seam_pt);
                     // add the first ring to the end 
-                    (*poly).insert((*poly).end(), open_digon.begin(), open_digon.end());
+                    (*poly).insert((*poly).end(), ++open_digon.begin(), open_digon.end());
+                    poly.is_digon = true;
+                    polygons.add(poly);
                 }
             }
             else
