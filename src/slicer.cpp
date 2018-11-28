@@ -96,10 +96,18 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
 
                     //add seam 1 before the new poly (ring 2)
                     (*poly).insert((*poly).begin(), start_seam_pt);
+                    
                     //add seam 2 at the end of the new poly
                     (*poly).push_back(start_seam_pt);
                     // add the first ring to the end 
                     (*poly).insert((*poly).end(), ++open_digon.begin(), open_digon.end());
+
+                    // this slicer was never generic but this mod makes it very unlikely to slice anything that's not this cube
+                    //(*poly).at(1) = ClipperLib::IntPoint((*poly).at(1).X + 2*PI*THETAFACTOR, (*poly).at(1).Y);
+                    (*poly).at(2) = ClipperLib::IntPoint((*poly).at(2).X + 2*PI*THETAFACTOR, (*poly).at(2).Y );
+                    (*poly).at(3) = ClipperLib::IntPoint((*poly).at(3).X + 2*PI*THETAFACTOR, (*poly).at(2).Y);
+                    (*poly).at(4) = ClipperLib::IntPoint((*poly).at(4).X + 2*PI*THETAFACTOR, (*poly).at(4).Y);
+                    
                     poly.is_digon = true;
                     polygons.add(poly);
                 }
@@ -1006,7 +1014,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
 
     std::vector<SlicerLayer> &layers_ref = layers; // force layers not to be copied into the threads
 
-//#pragma omp parallel for default(none) shared(mesh, layers_ref) firstprivate(keep_none_closed, extensive_stitching)
+#pragma omp parallel for default(none) shared(mesh, layers_ref) firstprivate(keep_none_closed, extensive_stitching)
     for (unsigned int layer_nr = 0; layer_nr < layers_ref.size(); layer_nr++)
     {
         layers_ref[layer_nr].makePolygons(mesh, keep_none_closed, extensive_stitching, layer_nr == 0);

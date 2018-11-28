@@ -130,6 +130,16 @@ INLINE int angle(const Point& p)
     return angle;
 }
 
+// INLINE Point reverse()
+// {
+//     return Point(Y,X);
+// }
+
+// INLINE Point add_x(int a)
+// {
+//     return Point(X+a, Y)
+// }
+
 }//namespace cura
     
 namespace std {
