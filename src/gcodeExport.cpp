@@ -568,7 +568,7 @@ void GCodeExport::writeExtrusion(Point3 p, double speed, double extrusion_mm3_pe
         writeMoveBFB(p.x, p.y, p.z, speed, extrusion_mm3_per_mm, feature);
         return;
     }
-    writeExtrusion(p.x, p.y, p.z, speed, extrusion_mm3_per_mm, feature, update_extrusion_offset);
+    writeExtrusion(p.x, p.y, p.z, speed, extrusion_mm3_per_mm, feature, update_extrusion_offset, drum_radius);
 }
 
 void GCodeExport::writeMoveBFB(int x, int y, int z, double speed, double extrusion_mm3_per_mm, PrintFeatureType feature)

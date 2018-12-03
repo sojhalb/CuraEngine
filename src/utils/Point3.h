@@ -117,8 +117,8 @@ public:
     {
         double theta = INT2THETA(x);
         double fy = INT2MM(y);
-        double fz = INT2MM(z + drum_radius);
-        double fx = theta*fz;
+        double fz = INT2MM(z);
+        double fx = theta*(fz + INT2MM(drum_radius));
         return sqrt(fx*fx+fy*fy+fz*fz);
     }
 
