@@ -113,6 +113,15 @@ public:
         return sqrt(fx*fx+fy*fy+fz*fz);
     }
 
+    double vSizeMMCyl() const
+    {
+        double theta = INT2THETA(x);
+        double fy = INT2MM(y);
+        double fz = INT2MM(z);
+        double fx = theta*fz;
+        return sqrt(fx*fx+fy*fy+fz*fz);
+    }
+
     coord_t dot(const Point3& p) const
     {
         return x*p.x + y*p.y + z*p.z;

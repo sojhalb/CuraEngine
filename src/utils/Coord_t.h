@@ -14,6 +14,7 @@ namespace cura
 using coord_t = ClipperLib::cInt;
 
 #define INT2MM(n) (double(n) / 1000.0)
+#define INT2THETA(n) (double(n) / THETAFACTOR)
 #define INT2MM2(n) (double(n) / 1000000.0)
 #define MM2INT(n) (coord_t(std::round((n) * 1000)))
 #define MM2_2INT(n) (coord_t(std::round((n) * 1000000)))
