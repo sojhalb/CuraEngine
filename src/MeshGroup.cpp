@@ -144,11 +144,13 @@ void MeshGroup::finalize()
 
     //If the machine settings have been supplied, offset the given position vertices to the center of vertices (0,0,0) is at the bed center.
     Point3 meshgroup_offset(0, 0, 0);
-    IntPoint cyl_axis = {155000, 30000};
+    IntPoint cyl_axis = IntPoint{getSettingInMicrons("drum_coordinate_x"), getSettingInMicrons("drum_coordinate_z")};
 
     if (!getSettingBoolean("machine_center_is_zero"))
     {
         meshgroup_offset.x = getSettingInMicrons("machine_width") / 2;
+        setSetting("drum_coordinate_x", std::to_string((cyl_axis.X + meshgroup_offset.x) / 1000) );
+        cyl_axis.X = getSettingInMicrons("drum_coordinate_x");
         meshgroup_offset.y = getSettingInMicrons("machine_depth") / 2;
     }
     
