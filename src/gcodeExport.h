@@ -303,7 +303,7 @@ public:
      * \param feature the feature that's currently printing
      * \param update_extrusion_offset whether to update the extrusion offset to match the current flow rate
      */
-    void writeExtrusion(Point p, double speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset = false);
+    void writeExtrusion(Point p, double speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset = false, coord_t drum_radius = 0);
 
     /*!
      * Go to a X/Y location with the z-hopped Z value
@@ -326,7 +326,7 @@ public:
      * \param feature the feature that's currently printing
      * \param update_extrusion_offset whether to update the extrusion offset to match the current flow rate
      */
-    void writeExtrusion(Point3 p, double speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset = false);
+    void writeExtrusion(Point3 p, double speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset = false, coord_t drum_radius = 0);
 private:
     /*!
      * Coordinates are build plate coordinates, which might be offsetted when extruder offsets are encoded in the gcode.
@@ -352,7 +352,7 @@ private:
      * \param feature the print feature that's currently printing
      * \param update_extrusion_offset whether to update the extrusion offset to match the current flow rate
      */
-    void writeExtrusion(int x, int y, int z, double speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset = false);
+    void writeExtrusion(int x, int y, int z, double speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset = false, coord_t drum_radius = 0);
 
     /*!
      * Write the F, X, Y, Z and E value (if they are not different from the last)

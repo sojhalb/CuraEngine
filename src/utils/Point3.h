@@ -113,11 +113,11 @@ public:
         return sqrt(fx*fx+fy*fy+fz*fz);
     }
 
-    double vSizeMMCyl() const
+    double vSizeMMCyl(coord_t drum_radius) const
     {
         double theta = INT2THETA(x);
         double fy = INT2MM(y);
-        double fz = INT2MM(z);
+        double fz = INT2MM(z + drum_radius);
         double fx = theta*fz;
         return sqrt(fx*fx+fy*fy+fz*fz);
     }
