@@ -521,6 +521,11 @@ public:
         return seg;
     }
 
+    bool segCrossesAxis(coord_t x0, coord_t x1, coord_t axis)
+    {
+        return ((x0 < axis && x1 > axis) || (x1 < axis && x0 > axis));
+    }
+
     coord_t dist2axis(Point3 p0, Point3 p1, IntPoint cyl_axis)
     {
         coord_t delX = p1.x - p0.x;
@@ -572,10 +577,16 @@ public:
             }
 
         }
-        else  //save the sqrt until we definitely need to do it
+        //shortest distance b/w two lines only applies if the line segment crosses the cyl_axis
+        else if (segCrossesAxis(p0.x, p1.x, cyl_axis.X) || segCrossesAxis(p0.z, p1.z, cyl_axis.Y))  
         {
             double mag = sqrt(pow(delZ,2) + pow(delX,2)); 
             dist = abs(dotcross / mag);
+        }
+        else 
+        {
+            // otherwise it's the smaller radius of p0 and p1
+            dist = std::min(p0.cp->r, p1.cp->r);
         }
         return dist;
     }
