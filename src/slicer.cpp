@@ -1215,8 +1215,9 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                     end_edge_idxs.push_back(2);
                 }
                 
-                points_on_cyl.push_back(*cs1->itx_either);
+                //points_on_cyl.push_back(*cs1->itx_either);
                 points_on_cyl.push_back(*cs2->itx_either);
+                points_on_cyl.push_back(*cs1->itx_either);
 
             }   // numPoints in == 2
             else if (numPointsIn == 1)
