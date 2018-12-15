@@ -1384,6 +1384,16 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 s.start = points_on_cyl[line_seg_num];
                 s.end = points_on_cyl[line_seg_num + 1];
 
+                // deal with segments that go over PI or -PI 
+                if ((s.start.X  - s.end.X ) > PI*THETAFACTOR) // going + theta
+                {
+                    s.end.X += 2*PI*THETAFACTOR;
+                }
+                else if ((s.end.X - s.start.X ) > PI*THETAFACTOR) // going -theta
+                {
+                    s.start.X += 2*PI*THETAFACTOR;
+                }
+
                 // store each segment
                 layers[layer_nr].face_idx_to_segment_idx.insert(std::make_pair(mesh_idx, layers[layer_nr].segments.size()));
                 s.faceIndex = mesh_idx;

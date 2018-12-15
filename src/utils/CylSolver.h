@@ -99,7 +99,7 @@ class CylSolver
         //     solve_reverse = true; // so the point nearest p2 will be solved first
         // }
         data->lb[0] = -2*PI;
-        data->ub[0] = 2*PI; // just let her rip
+        data->ub[0] = 2*PI; // limited to atan2 range
 
         solve_reverse = theta2 < theta1;
 
@@ -225,7 +225,6 @@ class CylSolver
             PrintFinalStats(kmem);
             assert(false);
         }
-
 
         //format the points in utheta
         itx_p1 = new Point(theta1 * THETAFACTOR, calcYFromT(p1, p2, t1));
@@ -506,14 +505,8 @@ class CylSolver
 
     realtype atan2bounds (realtype theta)
     {
-        while (theta < -PI)
-        {
-            theta += 2*PI;
-        }
-        while (theta > PI)
-        {
-            theta -= 2*PI;
-        }
+        if (theta > PI) { theta -= 2*PI; }
+        if (theta < -PI) { theta += 2*PI; }
         return theta;
     }
 
