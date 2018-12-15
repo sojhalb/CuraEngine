@@ -99,7 +99,7 @@ class CylSolver
         //     solve_reverse = true; // so the point nearest p2 will be solved first
         // }
         data->lb[0] = -2*PI;
-        data->ub[0] = 2*PI; // limited to atan2 range
+        data->ub[0] = 2*PI; // just let her rip
 
         solve_reverse = theta2 < theta1;
 
