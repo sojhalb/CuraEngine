@@ -196,7 +196,7 @@ class CylSolver
         mset = 0;
         if( SolveIt(kmem, u, s, glstr, mset) )
         {
-            printf("\n error from p1 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+            //printf("\n error from p1 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
             itx1_fail = true;
         }
 
@@ -213,7 +213,7 @@ class CylSolver
         mset = 0;
         if ( SolveIt(kmem, u, s, glstr, mset))
         {
-            printf("\n error from p2 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+            //printf("\n error from p2 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
             itx2_fail = true;
         }
 
@@ -233,7 +233,7 @@ class CylSolver
         // for equal solutions often times the farther one will fail..?
         if(itx1_fail && itx2_fail)
         {
-            //assert(false);
+            assert(false);
         }
         else if (itx1_fail)
         {

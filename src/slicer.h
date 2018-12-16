@@ -90,7 +90,7 @@ protected:
      * \param[in] segment The segment from which to start looking for the next
      * \param[in] start_segment_idx The index to the segment which when conected to \p segment will immediately stop looking for further candidates.
      */
-    int getNextSegmentIdx(const SlicerSegment& segment, unsigned int start_segment_idx);
+    int getNextSegmentIdx(SlicerSegment& segment, unsigned int start_segment_idx);
 
     /*!
      * Connecting polygons that are not closed yet, as models are not always perfect manifold we need to join some stuff up to get proper polygons.
@@ -397,8 +397,8 @@ private:
      * \param[in] face_idx The index of the face that might have generated a continuation segment.
      * \param[in] start_segment_idx The index of the segment that started this polyline.
      */
-    int tryFaceNextSegmentIdx(const SlicerSegment& segment,
-                              int face_idx, unsigned int start_segment_idx) const;
+    int tryFaceNextSegmentIdx(SlicerSegment& segment,
+                              int face_idx, unsigned int start_segment_idx) ;
 
     /*!
      * Find possible allowed stitches in goodness order.

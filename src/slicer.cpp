@@ -85,29 +85,20 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
                         assert(false);
                     }
 
-                    ClipperLib::IntPoint start_seam_pt = (*open_digon).at(0);
+                    // add 2 pi to the lower digon (y == 0), todo add a check
+                    (*open_digon).at(2) += 2*PI*THETAFACTOR;
+                    // rotate the upper digon left 1
+                    std::rotate((*poly).begin(), (*poly).begin() + 1, (*poly).end());
+                    // sub 2 pi from the upper digon from the end
+                    (*poly).at(2) -= PI*THETAFACTOR;
 
-                    //ClipperLib::IntPoint end_seam_pt = (*poly).at(0);
-                    // SlicerSegment seam1;//, seam2;
-                    // seam1.start = start_seam_pt;
-                    // seam1.end = end_seam_pt;
-                    // seam2.start = end_seam_pt;
-                    // seam2.end = start_seam_pt;
+                    ClipperLib::IntPoint start_seam_pt = (*poly).at(0);
 
-                    //add seam 1 before the new poly (ring 2)
-                    (*poly).insert((*poly).begin(), start_seam_pt);
-                    
-                    //add seam 2 at the end of the new poly
+                    //append the entire old digon to the new poly
+                    (*poly).insert((*poly).end(), open_digon.begin(), open_digon.end());
+                    // add the start point to the end to close the poly
                     (*poly).push_back(start_seam_pt);
-                    // add the first ring to the end 
-                    (*poly).insert((*poly).end(), ++open_digon.begin(), open_digon.end());
 
-                    // this slicer was never generic but this mod makes it very unlikely to slice anything that's not this cube
-                    //(*poly).at(1) = ClipperLib::IntPoint((*poly).at(1).X + 2*PI*THETAFACTOR, (*poly).at(1).Y);
-                    (*poly).at(2) = ClipperLib::IntPoint((*poly).at(2).X + 2*PI*THETAFACTOR, (*poly).at(2).Y );
-                    (*poly).at(3) = ClipperLib::IntPoint((*poly).at(3).X + 2*PI*THETAFACTOR, (*poly).at(2).Y);
-                    (*poly).at(4) = ClipperLib::IntPoint((*poly).at(4).X + 2*PI*THETAFACTOR, (*poly).at(4).Y);
-                    
                     poly.is_digon = true;
                     polygons.add(poly);
                 }
@@ -123,14 +114,14 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
     open_polylines.add(poly);
 }
 
-int SlicerLayer::tryFaceNextSegmentIdx(const SlicerSegment &segment, int face_idx, unsigned int start_segment_idx) const
+int SlicerLayer::tryFaceNextSegmentIdx(SlicerSegment &segment, int face_idx, unsigned int start_segment_idx)
 {
     decltype(face_idx_to_segment_idx.begin()) it;
-    auto it_end = face_idx_to_segment_idx.end();
+    // auto it_end = face_idx_to_segment_idx.end();
     auto range = face_idx_to_segment_idx.equal_range(face_idx);
-    //it = face_idx_to_segment_idx.find(face_idx);
-    //if (it != it_end)
-    auto count = face_idx_to_segment_idx.count(face_idx);
+    // //it = face_idx_to_segment_idx.find(face_idx);
+    // //if (it != it_end)
+    // auto count = face_idx_to_segment_idx.count(face_idx);
     for(auto it = range.first; it != range.second; ++it)
     {
         int segment_idx = it->second;
@@ -138,12 +129,17 @@ int SlicerLayer::tryFaceNextSegmentIdx(const SlicerSegment &segment, int face_id
         Point diff = cylDiff(segment.end,p1);
         if (shorterThen(diff, largest_neglected_gap_first_phase))
         {
-            auto temp = (segment.end.X - p1.X);
-            auto temp2 = int(2*PI*THETAFACTOR);
+            // auto temp = (segment.end.X - p1.X);
+            // auto temp2 = int(2*PI*THETAFACTOR);
             int wrapping_dir = (segment.end.X - p1.X) / int(2*PI*THETAFACTOR); // should be 1, -1 or 0
             if(wrapping_dir != 0)
-            {   
-                segments[segment_idx].start + wrapping_dir*2*PI*THETAFACTOR; // make the wrapping segment line up
+            {
+                segments[segment_idx].start.X += wrapping_dir*2*PI*THETAFACTOR;
+                segments[segment_idx].end.X += wrapping_dir*2*PI*THETAFACTOR;
+                // SlicerSegment temp;
+                // temp.start = Point(segments[segment_idx].start.X + wrapping_dir*2*PI*THETAFACTOR, segments[segment_idx].start.Y);
+                // temp.end = Point(segments[segment_idx].end.X + wrapping_dir*2*PI*THETAFACTOR, segments[segment_idx].end.Y);
+                //segments[segment_idx] = temp;
             }
             if (segment_idx == static_cast<int>(start_segment_idx))
             {
@@ -160,7 +156,7 @@ int SlicerLayer::tryFaceNextSegmentIdx(const SlicerSegment &segment, int face_id
     return -1;
 }
 
-int SlicerLayer::getNextSegmentIdx(const SlicerSegment &segment, unsigned int start_segment_idx)
+int SlicerLayer::getNextSegmentIdx(SlicerSegment &segment, unsigned int start_segment_idx)
 {
     int next_segment_idx = -1;
 
@@ -1235,7 +1231,6 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 if (numEdgesIn == 3)
                 {
                     //case 3.1, generates two line segments
-                    coord_t start1_y, end1_y, start2_y, end2_y;
                     CylSolver *cs1;
                     if (cyl_p0.r < r) 
                     {
