@@ -127,14 +127,24 @@ int SlicerLayer::tryFaceNextSegmentIdx(const SlicerSegment &segment, int face_id
 {
     decltype(face_idx_to_segment_idx.begin()) it;
     auto it_end = face_idx_to_segment_idx.end();
-    it = face_idx_to_segment_idx.find(face_idx);
-    if (it != it_end)
+    auto range = face_idx_to_segment_idx.equal_range(face_idx);
+    //it = face_idx_to_segment_idx.find(face_idx);
+    //if (it != it_end)
+    auto count = face_idx_to_segment_idx.count(face_idx);
+    for(auto it = range.first; it != range.second; ++it)
     {
-        int segment_idx = (*it).second;
+        int segment_idx = it->second;
         Point p1 = segments[segment_idx].start;
-        Point diff = segment.end - p1;
+        Point diff = cylDiff(segment.end,p1);
         if (shorterThen(diff, largest_neglected_gap_first_phase))
         {
+            auto temp = (segment.end.X - p1.X);
+            auto temp2 = int(2*PI*THETAFACTOR);
+            int wrapping_dir = (segment.end.X - p1.X) / int(2*PI*THETAFACTOR); // should be 1, -1 or 0
+            if(wrapping_dir != 0)
+            {   
+                segments[segment_idx].start + wrapping_dir*2*PI*THETAFACTOR; // make the wrapping segment line up
+            }
             if (segment_idx == static_cast<int>(start_segment_idx))
             {
                 return start_segment_idx;

@@ -4,6 +4,7 @@
 #define SLICER_H
 
 #include <queue>
+#include <map>
 
 #include "mesh.h"
 #include "utils/polygon.h"
@@ -49,7 +50,7 @@ class SlicerLayer
 {
 public:
     std::vector<SlicerSegment> segments;
-    std::unordered_map<int, int> face_idx_to_segment_idx; // topology
+    std::unordered_multimap<int, int> face_idx_to_segment_idx; // topology
 
     int z = -1;
     Polygons polygons;

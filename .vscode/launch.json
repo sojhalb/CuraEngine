@@ -36,6 +36,8 @@
                 "machine_max_feedrate_x=200",
                 "-s",
                 "machine_max_feedrate_y=200",
+                //"-s",
+                //"meshfix_keep_open_polygons=true",
                 "-s",
                 "machine_start_gcode=M109 S215 ; wait for extruder \n G90 ; use absolute positioning \n M82 ;absolute extrusion mode \n G21 ; set units to millimeters \n \n G92 E0.0 ; reset extruder distance position \n G1 X62.8 E9.0 F1000.0 ; intro line \n G92 E0.0 ; reset extruder distance position \n G0 Y3.0 F1000.0 ; go away from print line  \n G92 X0 Y0 E0 ; reset XYE \n G1 F2100 E-0.8 ; slight retract before starting print",
                 "-s",

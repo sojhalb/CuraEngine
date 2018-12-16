@@ -72,6 +72,10 @@ INLINE coord_t vSize2(const Point& p0)
 {
     return p0.X*p0.X+p0.Y*p0.Y;
 }
+INLINE Point cylDiff(const Point& p0, const Point& p1)
+{
+    return Point((p0.X-p1.X) % int(2*M_PI*THETAFACTOR), p0.Y-p1.Y);
+}
 INLINE float vSize2f(const Point& p0)
 {
     return float(p0.X)*float(p0.X)+float(p0.Y)*float(p0.Y);
