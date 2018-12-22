@@ -100,6 +100,10 @@ struct IntPoint {
   {
     return a.X != b.X  || a.Y != b.Y; 
   }
+  friend inline bool operator< (const IntPoint& a, const IntPoint& b)
+  {
+    return a.X < b.X; 
+  }
 };
 //------------------------------------------------------------------------------
 

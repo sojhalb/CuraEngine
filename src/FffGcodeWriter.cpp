@@ -1883,7 +1883,7 @@ void FffGcodeWriter::processRoofing(const SliceDataStorage& storage, LayerPlan& 
         roofing_angle = mesh.roofing_angles.at(gcode_layer.getLayerNr() % mesh.roofing_angles.size());
     }
 
-    const double skin_density = 1.0;
+    const double skin_density = 1.0;//(gcode_layer.z + mesh.getSettingInMicrons("drum_radius"))/ THETAFACTOR;
     const coord_t skin_overlap = 0; // skinfill already expanded over the roofing areas; don't overlap with perimeters
     Polygons* perimeter_gaps_output = (generate_perimeter_gaps)? &concentric_perimeter_gaps : nullptr;
     processSkinPrintFeature(storage, gcode_layer, mesh, extruder_nr, skin_part.roofing_fill, mesh_config.roofing_config, pattern, roofing_angle, skin_overlap, skin_density, perimeter_gaps_output, added_something);
@@ -1920,7 +1920,7 @@ void FffGcodeWriter::processTopBottom(const SliceDataStorage& storage, LayerPlan
 
     // generate skin_polygons and skin_lines (and concentric_perimeter_gaps if needed)
     const GCodePathConfig* skin_config = &mesh_config.skin_config;
-    double skin_density = 1.0;
+    double skin_density = 1.0;//(gcode_layer.z + mesh.getSettingInMicrons("drum_radius"))/ THETAFACTOR;
     coord_t skin_overlap = mesh.getSettingInMicrons("skin_overlap_mm");
     const coord_t more_skin_overlap = std::max(skin_overlap, (coord_t)(mesh_config.insetX_config.getLineWidth() / 2)); // force a minimum amount of skin_overlap
     const bool bridge_settings_enabled = mesh.getSettingBoolean("bridge_settings_enabled");
