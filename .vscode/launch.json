@@ -36,6 +36,8 @@
                 "machine_max_feedrate_x=200",
                 "-s",
                 "machine_max_feedrate_y=200",
+                "-s",
+                "zig_zaggify_infill=true",
                 //"-s",
                 //"meshfix_keep_open_polygons=true",
                 "-s",
