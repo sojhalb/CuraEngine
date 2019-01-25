@@ -65,7 +65,7 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
         if (segment_idx == static_cast<int>(start_segment_idx))
         { // polyon is closed
             //assuming max winding of 1
-            if (abs(winding_radians - 2*PI) < 0.001 && abs(winding_radians - 2*PI) > 0) // a very generous tolerance but it should be pretty close to 1
+            if (abs((abs(winding_radians)) - 2*PI) < 0.001 && abs(abs(winding_radians) - 2*PI) > 0) // a very generous tolerance but it should be pretty close to 1
             {
                 // here is where you would make digons if you were making digons
                 // instead we will be adding a seam and treating everything as a non-wrapping polygon
