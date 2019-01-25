@@ -139,6 +139,13 @@ int SlicerLayer::tryFaceNextSegmentIdx(SlicerSegment &segment, int face_idx, uns
     // //it = face_idx_to_segment_idx.find(face_idx);
     // //if (it != it_end)
     // auto count = face_idx_to_segment_idx.count(face_idx);
+    log("for face: %d, found matching segments: ", face_idx);
+    for(auto it = range.first; it != range.second; ++it)
+    {
+        log("%d ", it->second); 
+    }
+    log("\n");
+
     for(auto it = range.first; it != range.second; ++it)
     {
         int segment_idx = it->second;
@@ -1341,24 +1348,24 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                         // edge p0p1 is out, run cs on p2p0, p1p2
                         cs1 = new CylSolver(p1, p2, r, cyl_axis);
                         cs2 = new CylSolver(p2, p0, r, cyl_axis);
-                        end_edge_idxs.push_back(1);
                         end_edge_idxs.push_back(2);
+                        end_edge_idxs.push_back(1);
                     }
                     else if (d_p1p2 > r)
                     {
                         // edge p1p2 is out, run cs on p0p1, p2p0
                         cs1 = new CylSolver(p2, p0, r, cyl_axis);
                         cs2 = new CylSolver(p0, p1, r, cyl_axis);
-                        end_edge_idxs.push_back(2);
                         end_edge_idxs.push_back(0);
+                        end_edge_idxs.push_back(2);
                     }
                     else if (d_p2p0 > r)
                     {
                         // edge p2p0 is out, run cs on p1p2, p0p1
                         cs1 = new CylSolver(p0, p1, r, cyl_axis);
                         cs2 = new CylSolver(p1, p2, r, cyl_axis);
-                        end_edge_idxs.push_back(0);
                         end_edge_idxs.push_back(1);
+                        end_edge_idxs.push_back(0);
                     }
                     points_on_cyl.push_back(*cs1->itx_p2);
                     points_on_cyl.push_back(*cs2->itx_p1);

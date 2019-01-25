@@ -50,7 +50,7 @@ class SlicerLayer
 {
 public:
     std::vector<SlicerSegment> segments;
-    std::unordered_multimap<int, int> face_idx_to_segment_idx; // topology
+    std::multimap<int, int> face_idx_to_segment_idx; // topology
 
     int z = -1;
     Polygons polygons;

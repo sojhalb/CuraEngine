@@ -47,7 +47,7 @@
                 "-s",
                 "machine_end_gcode=G4 ; dwell, make sure the last G-code is done \n M83 ; Set to relative mode for retract \n G1 E-5 F1000 ; retract \n M104 S0 ; set extruder temp to 0 \n G91 ; Set to relative mode for lift \n G1 Z10.0 F1000.0 ; lift up \n G92 E0.0 ; stop extruder just in case",
                 "-l",
-                "~/Downloads/60mmcube.stl",
+                "~/Downloads/hexagon.stl",
                 ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
