@@ -89,28 +89,39 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
                     // int bottom_max_idx = 1;
                     // int top_min_idx = 1;
                     // auto bottom_max = *max_element(std::begin(open_digon), std::end(open_digon));
-                    auto bottom_max_iter = max_element(open_digon.begin(), open_digon.end());
+
+                    // assuming that open digon is always decreasing and poly is increasing..
+
+                    if (open_digon.front().X == open_digon.back().X)
+                    {
+                        open_digon.front().X += 2*PI*THETAFACTOR;
+                    }
+
+                    if (poly.front().X == poly.back().X)
+                    {
+                        poly.back().X += 2*PI*THETAFACTOR;
+                    }
+                    // auto bottom_max_iter = max_element(open_digon.begin(), open_digon.end());
 
                     auto top_max_iter = max_element(poly.begin(), poly.end());
 
-                    // add 2*PI to points in bottom ring
-                    bottom_max_iter++;
-                    for(; bottom_max_iter != open_digon.end(); bottom_max_iter++)
-                    {
-                        *bottom_max_iter += 2*PI*THETAFACTOR;
-                    }
+                    // // add 2*PI to points in bottom ring
+                    // bottom_max_iter++;
+                    // for(; bottom_max_iter != open_digon.end(); bottom_max_iter++)
+                    // {
+                    //     *bottom_max_iter += 2*PI*THETAFACTOR;
+                    // }
 
-                    // sub 2*PI to points in top ring
-                    for(auto iter = poly.begin(); iter != top_max_iter; iter++)
-                    {
-                        *iter -= PI*THETAFACTOR;
-                    }
-                    // rotate the upper digon left by top_turnback
-                    std::rotate((*poly).begin(), (*poly).begin() + (top_max_iter - poly.begin()), (*poly).end());
-                    // sub 2 pi from the upper digon from the end
+                    // // sub 2*PI to points in top ring
+                    // for(auto iter = poly.begin(); iter != top_max_iter; iter++)
+                    // {
+                    //     *iter -= PI*THETAFACTOR;
+                    // }
+                    // // rotate the upper digon left by top_turnback
+                    //std::rotate((*poly).begin(), (*poly).begin() + (top_max_iter - poly.begin()), (*poly).end());
+                    // // sub 2 pi from the upper digon from the end
 
                     ClipperLib::IntPoint start_seam_pt = (*poly).at(0);
-
                     //append the entire old digon to the new poly
                     (*poly).insert((*poly).end(), open_digon.begin(), open_digon.end());
                     // add the start point to the end to close the poly
