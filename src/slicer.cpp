@@ -18,20 +18,20 @@ int largest_neglected_gap_first_phase = MM2INT(0.01);  //!< distance between two
 int largest_neglected_gap_second_phase = MM2INT(0.02); //!< distance between two line segments regarded as connected
 int max_stitch1 = MM2INT(10.0);                        //!< maximal distance stitched between open polylines to form polygons
 
-void SlicerLayer::makeBasicPolygonLoops(Polygons &open_polylines, Polygon& open_digon)
+void SlicerLayer::makeBasicPolygonLoops(Polygons &open_polylines, Polygon& open_digon, int layer_nr)
 {
     for (unsigned int start_segment_idx = 0; start_segment_idx < segments.size(); start_segment_idx++)
     {
         if (!segments[start_segment_idx].addedToPolygon)
         {
-            makeBasicPolygonLoop(open_polylines, open_digon, start_segment_idx);
+            makeBasicPolygonLoop(open_polylines, open_digon, start_segment_idx,layer_nr);
         }
     }
     //Clear the segmentList to save memory, it is no longer needed after this point.
     segments.clear();
 }
 
-void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_digon, unsigned int start_segment_idx)
+void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_digon, unsigned int start_segment_idx, int layer_nr)
 {
     Polygon poly;
      // used to store the first edge of a digon while the 2nd is found
@@ -137,8 +137,8 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
                     // // sub 2 pi from the upper digon from the end
 
                     // so far seam is just constant
-                    coord_t seam = 35415;
-                    coord_t seam2 = 27415;
+                    coord_t seam = (layer_nr % 2) ? 35415 : 27415;
+                    coord_t seam2 = (layer_nr % 2) ? 27415 : 35415;
                     Point* pt_bot =  new Point{seam, poly.front().Y};
                     Point* pt_top = new Point{seam2, open_digon.front().Y};
 
@@ -171,7 +171,7 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
 
                     ClipperLib::IntPoint start_seam_pt = (*poly).at(0);
                     //append the entire old digon to the new poly
-                    seam_bot = std::lower_bound(poly.begin(), poly.end(), seam);
+                    seam_bot = std::find(poly.begin(), poly.end(), seam);
                     (*poly).insert(seam_bot + 1, open_digon.begin(), open_digon.end());
                     // add the start point to the end to close the poly
                     (*poly).push_back(start_seam_pt);
@@ -905,12 +905,12 @@ ClosePolygonResult SlicerLayer::findPolygonPointClosestTo(Point input)
     return ret;
 }
 
-void SlicerLayer::makePolygons(const Mesh *mesh, bool keep_none_closed, bool extensive_stitching, bool is_initial_layer)
+void SlicerLayer::makePolygons(const Mesh *mesh, bool keep_none_closed, bool extensive_stitching, bool is_initial_layer, int layer_nr)
 {
     Polygons open_polylines;
     Polygon open_digon;
 
-    makeBasicPolygonLoops(open_polylines, open_digon);
+    makeBasicPolygonLoops(open_polylines, open_digon, layer_nr);
 
     connectOpenPolylines(open_polylines);
 
@@ -1107,7 +1107,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
 //#pragma omp parallel for default(none) shared(mesh, layers_ref) firstprivate(keep_none_closed, extensive_stitching)
     for (unsigned int layer_nr = 0; layer_nr < layers_ref.size(); layer_nr++)
     {
-        layers_ref[layer_nr].makePolygons(mesh, keep_none_closed, extensive_stitching, layer_nr == 0);
+        layers_ref[layer_nr].makePolygons(mesh, keep_none_closed, extensive_stitching, layer_nr == 0, layer_nr);
     }
 
     switch (slicing_tolerance)
@@ -1500,7 +1500,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
 //#pragma omp parallel for default(none) shared(mesh, layers_ref) firstprivate(keep_none_closed, extensive_stitching)
     for (unsigned int layer_nr = 0; layer_nr < layers_ref.size(); layer_nr++)
     {
-        layers_ref[layer_nr].makePolygons(mesh, keep_none_closed, extensive_stitching, layer_nr == 0);
+        layers_ref[layer_nr].makePolygons(mesh, keep_none_closed, extensive_stitching, layer_nr == 0, layer_nr);
     }
 
     switch (slicing_tolerance)
