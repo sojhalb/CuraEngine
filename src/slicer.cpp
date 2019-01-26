@@ -90,7 +90,22 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
                     // int top_min_idx = 1;
                     // auto bottom_max = *max_element(std::begin(open_digon), std::end(open_digon));
 
-                    // assuming that open digon is always decreasing and poly is increasing..
+                    // assuming that open digon is always decreasing (Y is > than poly) and poly is increasing..
+
+                    if(open_digon.front().Y < poly.front().Y)
+                    {
+                        auto temp = open_digon;
+                        open_digon.clear();
+                        for (int i = 0; i < poly.size(); i++)
+                        {
+                            open_digon.add(poly[i]);
+                        }
+                        poly.clear();
+                        for (int j = 0; j < temp.size(); j++)
+                        {
+                            poly.add(temp[j]);
+                        }
+                    }
 
                     if (open_digon.front().X == open_digon.back().X)
                     {
@@ -121,9 +136,43 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
                     //std::rotate((*poly).begin(), (*poly).begin() + (top_max_iter - poly.begin()), (*poly).end());
                     // // sub 2 pi from the upper digon from the end
 
+                    // so far seam is just constant
+                    coord_t seam = 35415;
+                    coord_t seam2 = 27415;
+                    Point* pt_bot =  new Point{seam, poly.front().Y};
+                    Point* pt_top = new Point{seam2, open_digon.front().Y};
+
+                    auto seam_bot = std::lower_bound(poly.begin(), poly.end(), seam);
+
+                    (*poly).insert(seam_bot, 1, *pt_bot);
+
+                    for (auto it = seam_bot + 1; it != poly.end(); ++it)
+                    {
+                        (*it).X -= (2*PI*THETAFACTOR);
+                    }
+
+                    ClipperLib::IntPoint test {seam, poly.front().Y};
+                    auto ab = (*poly).insert(seam_bot, 1, test);
+                    (++ab)->X -= 2*PI*THETAFACTOR;
+
+                    ClipperLib::Path::reverse_iterator seam_top = std::lower_bound(open_digon.rbegin(), open_digon.rend(), seam);
+                    //(*open_digon).insert(seam_top.base(), 1, *pt_top);
+                    ClipperLib::Path::iterator temp = seam_top.base();
+                    for (ClipperLib::Path::iterator it = open_digon.begin(); it != temp; ++it)
+                    {
+                        (*it).X -= (2*PI*THETAFACTOR);
+                    }
+                    std::rotate((*open_digon).begin(), (*open_digon).begin() + (seam_top.base() - open_digon.begin()), (*open_digon).end());
+                    (*open_digon).insert((*open_digon).begin(),1, *pt_top);
+
+                    ClipperLib::IntPoint test2 {seam2, open_digon.front().Y};
+                    (*open_digon).emplace_back(test2);
+                    (*open_digon).back().X -= 2*PI*THETAFACTOR;
+
                     ClipperLib::IntPoint start_seam_pt = (*poly).at(0);
                     //append the entire old digon to the new poly
-                    (*poly).insert((*poly).end(), open_digon.begin(), open_digon.end());
+                    seam_bot = std::lower_bound(poly.begin(), poly.end(), seam);
+                    (*poly).insert(seam_bot + 1, open_digon.begin(), open_digon.end());
                     // add the start point to the end to close the poly
                     (*poly).push_back(start_seam_pt);
 
@@ -1055,7 +1104,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
 
     std::vector<SlicerLayer> &layers_ref = layers; // force layers not to be copied into the threads
 
-#pragma omp parallel for default(none) shared(mesh, layers_ref) firstprivate(keep_none_closed, extensive_stitching)
+//#pragma omp parallel for default(none) shared(mesh, layers_ref) firstprivate(keep_none_closed, extensive_stitching)
     for (unsigned int layer_nr = 0; layer_nr < layers_ref.size(); layer_nr++)
     {
         layers_ref[layer_nr].makePolygons(mesh, keep_none_closed, extensive_stitching, layer_nr == 0);
@@ -1448,7 +1497,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
 
     std::vector<SlicerLayer> &layers_ref = layers; // force layers not to be copied into the threads
 
-#pragma omp parallel for default(none) shared(mesh, layers_ref) firstprivate(keep_none_closed, extensive_stitching)
+//#pragma omp parallel for default(none) shared(mesh, layers_ref) firstprivate(keep_none_closed, extensive_stitching)
     for (unsigned int layer_nr = 0; layer_nr < layers_ref.size(); layer_nr++)
     {
         layers_ref[layer_nr].makePolygons(mesh, keep_none_closed, extensive_stitching, layer_nr == 0);

@@ -391,6 +391,16 @@ public:
     {
         return path->end();
     }
+    
+    ClipperLib::Path::reverse_iterator rbegin()
+    {
+        return path->rbegin();
+    }
+
+    ClipperLib::Path::reverse_iterator rend()
+    {
+        return path->rend();
+    }
 
     ClipperLib::Path::reference front()
     {

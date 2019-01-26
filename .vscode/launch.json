@@ -43,7 +43,7 @@
                 //"-s",
                 //"meshfix_keep_open_polygons=true",
                 "-l",
-                "~/Downloads/hexagon.stl",
+                "~/Downloads/60mmcube.stl",
                 ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
