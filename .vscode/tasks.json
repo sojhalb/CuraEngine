@@ -11,13 +11,13 @@
             },
             "command": "cmake",
             "args": [
-                "-S",
-                "${workSpaceFolder}",
                 "-DCMAKE_BUILD_TYPE=Debug",
-                "-B",
-                "/usr/local/src/CuraEngine/build",
-            ]
+                ".."
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
-        //make and make install commands?
     ]
 }
