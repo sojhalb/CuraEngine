@@ -18,20 +18,20 @@ int largest_neglected_gap_first_phase = MM2INT(0.01);  //!< distance between two
 int largest_neglected_gap_second_phase = MM2INT(0.02); //!< distance between two line segments regarded as connected
 int max_stitch1 = MM2INT(10.0);                        //!< maximal distance stitched between open polylines to form polygons
 
-void SlicerLayer::makeBasicPolygonLoops(Polygons &open_polylines, Polygon& open_digon)
+void SlicerLayer::makeBasicPolygonLoops(Polygons &open_polylines, Polygon& open_digon, const Mesh* mesh)
 {
     for (unsigned int start_segment_idx = 0; start_segment_idx < segments.size(); start_segment_idx++)
     {
         if (!segments[start_segment_idx].addedToPolygon)
         {
-            makeBasicPolygonLoop(open_polylines, open_digon, start_segment_idx);
+            makeBasicPolygonLoop(open_polylines, open_digon, start_segment_idx, mesh);
         }
     }
     //Clear the segmentList to save memory, it is no longer needed after this point.
     segments.clear();
 }
 
-void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_digon, unsigned int start_segment_idx)
+void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_digon, unsigned int start_segment_idx, const Mesh* mesh)
 {
     Polygon poly;
      // used to store the first edge of a digon while the 2nd is found
@@ -137,8 +137,8 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
                     // // sub 2 pi from the upper digon from the end
 
                     // so far seam is just constant
-                    coord_t seam = 35415;
-                    coord_t seam2 = 27415;
+                    coord_t seam = mesh->getSettingInMillimeters("seam_front");
+                    coord_t seam2 = mesh->getSettingInMillimeters("seam_back");
                     Point* pt_bot =  new Point{seam, poly.front().Y};
                     Point* pt_top = new Point{seam2, open_digon.front().Y};
 
@@ -171,7 +171,7 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
 
                     ClipperLib::IntPoint start_seam_pt = (*poly).at(0);
                     //append the entire old digon to the new poly
-                    seam_bot = std::lower_bound(poly.begin(), poly.end(), seam);
+                    seam_bot = std::find(poly.begin(), poly.end(), seam);
                     (*poly).insert(seam_bot + 1, open_digon.begin(), open_digon.end());
                     // add the start point to the end to close the poly
                     (*poly).push_back(start_seam_pt);
@@ -194,17 +194,14 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
 int SlicerLayer::tryFaceNextSegmentIdx(SlicerSegment &segment, int face_idx, unsigned int start_segment_idx)
 {
     decltype(face_idx_to_segment_idx.begin()) it;
-    // auto it_end = face_idx_to_segment_idx.end();
     auto range = face_idx_to_segment_idx.equal_range(face_idx);
-    // //it = face_idx_to_segment_idx.find(face_idx);
-    // //if (it != it_end)
-    // auto count = face_idx_to_segment_idx.count(face_idx);
-    log("for face: %d, found matching segments: ", face_idx);
-    for(auto it = range.first; it != range.second; ++it)
-    {
-        log("%d ", it->second); 
-    }
-    log("\n");
+
+    // log("for face: %d, found matching segments: ", face_idx);
+    // for(auto it = range.first; it != range.second; ++it)
+    // {
+    //     log("%d ", it->second); 
+    // }
+    // log("\n");
 
     for(auto it = range.first; it != range.second; ++it)
     {
@@ -910,7 +907,7 @@ void SlicerLayer::makePolygons(const Mesh *mesh, bool keep_none_closed, bool ext
     Polygons open_polylines;
     Polygon open_digon;
 
-    makeBasicPolygonLoops(open_polylines, open_digon);
+    makeBasicPolygonLoops(open_polylines, open_digon, mesh);
 
     connectOpenPolylines(open_polylines);
 

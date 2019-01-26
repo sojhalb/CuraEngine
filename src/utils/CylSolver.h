@@ -222,7 +222,7 @@ class CylSolver
 
         if (itx1_fail && itx2_fail)
         {
-            PrintFinalStats(kmem);
+            //PrintFinalStats(kmem);
             assert(false);
         }
 
@@ -364,9 +364,9 @@ class CylSolver
             errflag = (int *)flagvalue;
             if (*errflag < 0)
             {
-                fprintf(stderr,
-                        "\nSUNDIALS_ERROR: %s() failed with flag = %d\n\n",
-                        funcname, *errflag);
+                // fprintf(stderr,
+                //         "\nSUNDIALS_ERROR: %s() failed with flag = %d\n\n",
+                //         funcname, *errflag);
                 return (1);
             }
         }
