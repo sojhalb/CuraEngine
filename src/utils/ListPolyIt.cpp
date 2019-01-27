@@ -32,7 +32,7 @@ void ListPolyIt::convertPolygonToList(ConstPolygonRef poly, ListPolygon& result)
         // in PolygonProximityLinker (where this function is (also) used) it is
         // required to not have degenerate verts, because verts are mapped
         // to links, but if two different verts are at the same place the mapping fails.
-        assert(p != last);
+        //assert(p != last);
         last = p;
 #endif // DEBUG
     }
