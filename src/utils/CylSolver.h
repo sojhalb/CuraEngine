@@ -87,6 +87,20 @@ class CylSolver
         theta_p1 = atan2(pz1 - cyl_axis.Y, px1 - cyl_axis.X);
         theta_p2 = atan2(pz2 - cyl_axis.Y, px2 - cyl_axis.X);
 
+        // if the line is outside then the solution is the point that touches
+        if(p1.cp->r > R && p2.cp->r == R)
+        {
+            itx_p1 = new Point(p2.cp->theta, p2.y );
+            itx_either = itx_p1;
+            return;
+        }
+        if(p2.cp->r > R && p1.cp->r == R)
+        {
+            itx_p1 = new Point(p1.cp->theta, p1.y );
+            itx_either = itx_p1;
+            return;
+        }
+
         // if (theta_p1 < theta_p2)
         // {
         //     data->lb[0] = theta_p1;

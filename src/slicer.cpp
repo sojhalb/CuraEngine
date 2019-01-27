@@ -1370,6 +1370,11 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                         cs2 = new CylSolver(p1, p2, r, cyl_axis);
                         end_edge_idxs.push_back(1);
                     }
+                    else
+                    {
+                        continue;
+                    }
+                    
                     points_on_cyl.push_back(*cs1->itx_either);
                     points_on_cyl.push_back(*cs2->itx_either);
 
@@ -1457,6 +1462,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 else
                 {
                 // the very rare completely surrounds cylinder case. still no plan
+                assert(false);
                 }
             } // numPointsIn == 0
 
