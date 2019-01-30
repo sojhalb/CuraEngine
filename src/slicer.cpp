@@ -963,6 +963,28 @@ void SlicerLayer::makePolygons(const Mesh *mesh, bool keep_none_closed, bool ext
     }
 }
 
+bool binsearch(Point3 start, Point3 end, IntPoint cyl_axis, coord_t lim, uint depth, uint depth_lim)
+{
+    if (++depth > depth_lim)
+        return false;
+    else
+    {
+        Point3 pt = Point3((start.x + end.x) / 2, (start.y + end.y) / 2, (start.z + end.z) / 2);
+        pt.toCylPoint3(cyl_axis.X, cyl_axis.Y);
+        if (pt.cp->r < lim)
+            return true;
+        else
+        {
+            if (start.cp->r > pt.cp->r)
+                start = pt;
+            else if (end.cp->r > pt.cp->r)
+                end = pt;
+            return binsearch (start, end, cyl_axis, lim, depth, depth_lim);
+        }
+        
+    }
+}
+
 Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t thickness, const size_t slice_layer_count, bool keep_none_closed, bool extensive_stitching,
                bool use_variable_layer_heights, std::vector<AdaptiveLayer> *adaptive_layers)
     : mesh(mesh)
