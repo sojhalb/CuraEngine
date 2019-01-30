@@ -71,7 +71,7 @@
                 //"-s",
                 //"meshfix_keep_open_polygons=true",
                 "-l",
-                "~/Downloads/cylinderwithsquarehole.stl",
+                "~/Downloads/spring5.stl",
                 ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

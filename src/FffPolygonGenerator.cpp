@@ -54,6 +54,25 @@ bool FffPolygonGenerator::generateAreas(SliceDataStorage& storage, MeshGroup* me
 
     slices2polygons(storage, timeKeeper);
 
+    
+    for (int i = 0; i < storage.meshes[0].layers.size(); i++)
+    {
+        auto layer = storage.meshes[0].layers[i];
+        log ("\nLAYER %i \n", i);
+        if (layer.parts.size() == 0)
+            log ("\n\nLAYER %i HAS NO PARTS\n\n", i);
+        else
+        {
+            int j = 0;
+            for (auto point : layer.parts[0].outline.outerPolygon())
+            {
+                log("%i, %i   ", point.X, point.Y);
+                if (j++ > 3)
+                    break;
+            }
+        }
+    }
+
     return true;
 }
 
