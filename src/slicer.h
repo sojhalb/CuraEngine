@@ -578,17 +578,22 @@ public:
             }
 
         }
-        //shortest distance b/w two lines only applies if the line segment crosses the cyl_axis
-        else if (segCrossesAxis(p0.x, p1.x, cyl_axis.X) || segCrossesAxis(p0.z, p1.z, cyl_axis.Y))  
+        else
         {
             double mag = sqrt(pow(delZ,2) + pow(delX,2)); 
             dist = abs(dotcross / mag);
         }
-        else 
-        {
-            // otherwise it's the smaller radius of p0 and p1
-            dist = std::min(p0.cp->r, p1.cp->r);
-        }
+        // //shortest distance b/w two lines only applies if the line segment crosses the cyl_axis
+        // else if (segCrossesAxis(p0.x, p1.x, cyl_axis.X) || segCrossesAxis(p0.z, p1.z, cyl_axis.Y))  
+        // {
+        //     double mag = sqrt(pow(delZ,2) + pow(delX,2)); 
+        //     dist = abs(dotcross / mag);
+        // }
+        // else 
+        // {
+        //     // otherwise it's the smaller radius of p0 and p1
+        //     dist = std::min(p0.cp->r, p1.cp->r);
+        // }
         return dist;
     }
 
