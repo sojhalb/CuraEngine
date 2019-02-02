@@ -237,19 +237,17 @@ class CylSolver
         if (itx1_fail && itx2_fail)
         {
             //PrintFinalStats(kmem);
-            assert(false);
+            itx_p1 = new Point( atan2(pz1 - cyl_axis.Y, px1 - cyl_axis.X) * THETAFACTOR, p1.y);
+            itx_p2 = new Point( atan2(pz2 - cyl_axis.Y, px2 - cyl_axis.X) * THETAFACTOR, p2.y);
+            log("\n\n BOTH CYL SOLVER ATTEMPTS FAILED \n\n");
+            //assert(false);
         }
 
         //format the points in utheta
         itx_p1 = new Point(theta1 * THETAFACTOR, calcYFromT(p1, p2, t1));
         itx_p2 = new Point(theta2 * THETAFACTOR, calcYFromT(p1,p2,t2));
 
-        // for equal solutions often times the farther one will fail..?
-        if(itx1_fail && itx2_fail)
-        {
-            assert(false);
-        }
-        else if (itx1_fail)
+        if (itx1_fail && !itx2_fail)
         {
             itx_either = itx_p2;
         }

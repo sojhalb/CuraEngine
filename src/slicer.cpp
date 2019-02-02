@@ -1362,6 +1362,11 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                         end_edge_idxs.push_back(0);
                         end_edge_idxs.push_back(1);
                     }
+                    else
+                    {
+                        continue;
+                    }
+                    
 
                     points_on_cyl.push_back(*cs1->itx_either);
                     points_on_cyl.push_back(*cs2->itx_p1);
@@ -1451,6 +1456,10 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                         end_edge_idxs.push_back(1);
                         end_edge_idxs.push_back(0);
                     }
+                    else
+                    {
+                        continue;
+                    }
                     points_on_cyl.push_back(*cs1->itx_p2);
                     points_on_cyl.push_back(*cs2->itx_p1);
                     points_on_cyl.push_back(*cs2->itx_p2);
@@ -1478,6 +1487,11 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                         cs1 = new CylSolver(p2, p0, r, cyl_axis);
                         end_edge_idxs.push_back(2);
                     }
+                    else
+                    {
+                        continue;
+                    }
+                    
                     points_on_cyl.push_back(*cs1->itx_p2);
                     points_on_cyl.push_back(*cs1->itx_p1);
                 }
