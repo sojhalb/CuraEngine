@@ -64,7 +64,7 @@ public:
      * \param extensive_stitching Whether to perform extra work to try and close polylines into polygons when there are large gaps
      * \param is_initial_layer Whether this is the first layer of the mesh data
      */
-    void makePolygons(const Mesh* mesh, bool keep_none_closed, bool extensive_stitching, bool is_initial_layer);
+    void makePolygons(const Mesh* mesh, bool keep_none_closed, bool extensive_stitching, bool is_initial_layer, int layer_num);
 
 protected:
     /*!
@@ -72,7 +72,7 @@ protected:
      *
      * \param[in,out] open_polylines The polylines which are stiched, but couldn't be closed into a loop
      */
-    void makeBasicPolygonLoops(Polygons& open_polylines, Polygon& open_digon, const Mesh* mesh);
+    void makeBasicPolygonLoops(Polygons& open_polylines, Polygon& open_digon, const Mesh* mesh, int layer_num);
 
     /*!
      * Connect the segments into a loop, starting from the segment with index \p start_segment_idx
@@ -80,7 +80,7 @@ protected:
      * \param[in,out] open_polylines The polylines which are stiched, but couldn't be closed into a loop
      * \param[in] start_segment_idx The index into SlicerLayer::segments for the first segment from which to start the polygon loop
      */
-    void makeBasicPolygonLoop(Polygons& open_polylines, Polygon& open_digon, unsigned int start_segment_idx, const Mesh* mesh);
+    void makeBasicPolygonLoop(Polygons& open_polylines, Polygon& open_digon, unsigned int start_segment_idx, const Mesh* mesh, int layer_num);
 
     /*!
      * Get the next segment connected to the end of \p segment.
