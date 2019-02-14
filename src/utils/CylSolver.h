@@ -240,6 +240,55 @@ class CylSolver
             itx_p1 = new Point( atan2(pz1 - cyl_axis.Y, px1 - cyl_axis.X) * THETAFACTOR, p1.y);
             itx_p2 = new Point( atan2(pz2 - cyl_axis.Y, px2 - cyl_axis.X) * THETAFACTOR, p2.y);
             log("\n\n BOTH CYL SOLVER ATTEMPTS FAILED \n\n");
+
+            SetInitialGuess1(u1, data, theta_p1, 0);
+            //SetInitialGuess2(u2, data, theta_p2, 1);
+
+            // try all three other settings on p1
+            glstr = KIN_LINESEARCH;
+            mset = 1;
+            N_VScale_Serial(ONE, u1, u);
+            if( SolveIt(kmem, u, s, glstr, mset) )
+            {
+                //printf("\n error from p1 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+                itx1_fail = true;
+            }
+            else
+            {
+                theta1 = Ith(u, 1);
+                t1 = Ith(u, 2);
+            }
+
+            SetInitialGuess1(u1, data, theta_p1, 0);
+            glstr = KIN_NONE;
+            mset = 0;
+            N_VScale_Serial(ONE, u1, u);
+            if( SolveIt(kmem, u, s, glstr, mset) )
+            {
+                //printf("\n error from p1 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+                itx1_fail = true;
+            }
+            else
+            {
+                theta1 = Ith(u, 1);
+                t1 = Ith(u, 2);
+            }
+
+            SetInitialGuess1(u1, data, theta_p1, 0);
+            glstr = KIN_NONE;
+            mset = 1;
+            N_VScale_Serial(ONE, u1, u);
+            if( SolveIt(kmem, u, s, glstr, mset) )
+            {
+                //printf("\n error from p1 end of: ( %d, %d, %d ) to ( %d, %d, %d )", p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+                itx1_fail = true;
+            }
+            else
+            {
+                theta1 = Ith(u, 1);
+                t1 = Ith(u, 2);
+            }
+            
             //assert(false);
         }
 

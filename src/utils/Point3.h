@@ -133,6 +133,8 @@ public:
     {
         cp = toCylPoint3(cyl_x, cyl_y);
     }
+
+    float floatRadius (coord_t cyl_x, coord_t cyl_y);
 };
 
 class CylPoint3 

@@ -22,6 +22,14 @@ CylPoint3* Point3::toCylPoint3(coord_t cyl_x, coord_t cyl_y)
     // y = r;
 }
 
+float Point3::floatRadius (coord_t cyl_x, coord_t cyl_y)
+{
+    coord_t rel_x = x - cyl_x;
+    coord_t rel_y = z - cyl_y;
+    float r = sqrt(pow(rel_x,2) + pow(rel_y,2));
+    return r;
+}
+
 // Point3* CylPoint3::toPoint3()
 //     {
 //         coord_t x = r * cos(theta);

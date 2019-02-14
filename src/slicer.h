@@ -535,7 +535,7 @@ public:
         {
             Point3 pt = Point3((start.x + end.x) / 2, (start.y + end.y) / 2, (start.z + end.z) / 2);
             pt.cp = pt.toCylPoint3(cyl_axis.X, cyl_axis.Y);
-            if (pt.cp->r < lim) // could be <=?
+            if (pt.floatRadius(cyl_axis.X, cyl_axis.Y) < ((float)lim)) // new point could be rounded down
                 return true;
             else
             {

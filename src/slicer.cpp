@@ -1335,7 +1335,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 {
                     //case 3.1, generates two line segments
                     CylSolver *cs1;
-                    if (cyl_p0.r < r) 
+                    if (cyl_p0.r <= r) 
                     {
                         //  p0 is in, edge12 is in, run cs on p0p1, p1p2, p2p0, make 1,2,1 points
                         cs1 = new CylSolver(p0, p1, r, cyl_axis);
@@ -1344,7 +1344,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                         end_edge_idxs.push_back(1);
                         end_edge_idxs.push_back(2);
                     }
-                    else if (cyl_p1.r < r) 
+                    else if (cyl_p1.r <= r) 
                     {
                         // edge p2p0 is in,p1 is in (hopefully)
                         cs1 = new CylSolver(p1, p2, r, cyl_axis);
@@ -1353,7 +1353,7 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                         end_edge_idxs.push_back(2);
                         end_edge_idxs.push_back(0);
                     }
-                    else if (cyl_p2.r < r)
+                    else if (cyl_p2.r <= r)
                     {                        
                         // edge p0p1 is in,p2 is in (hopefully)
                         cs1 = new CylSolver(p2, p0, r, cyl_axis);
@@ -1376,21 +1376,21 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 else if (numEdgesIn == 2)
                 {
                     // case 2.1
-                    if (cyl_p0.r < r)
+                    if (cyl_p0.r <= r)
                     {
                         // point 0 is in, run cs on p0p1, p2p0, solutions will be equal for each cs
                         cs1 = new CylSolver(p0, p1, r, cyl_axis);
                         cs2 = new CylSolver(p2, p0, r, cyl_axis);
                         end_edge_idxs.push_back(2);
                     }
-                    else if (cyl_p1.r < r)
+                    else if (cyl_p1.r <= r)
                     {
                         //point 1 is in
                         cs1 = new CylSolver(p1, p2, r, cyl_axis);
                         cs2 = new CylSolver(p0, p1, r, cyl_axis);
                         end_edge_idxs.push_back(0);
                     }
-                    else if (cyl_p2.r < r)
+                    else if (cyl_p2.r <= r)
                     {
                         //point 2 is in
                         cs1 = new CylSolver(p2, p0, r, cyl_axis);
@@ -1469,19 +1469,19 @@ Slicer::Slicer(Mesh *mesh, const coord_t initial_layer_thickness, const coord_t 
                 else if (numEdgesIn == 1)
                 {
                     //case 1.0
-                    if (d_p0p1 < r)
+                    if (d_p0p1 <= r)
                     {
                         //edge p0p1 is in, run cs on p0p1
                         cs1 = new CylSolver(p0, p1, r, cyl_axis);
                         end_edge_idxs.push_back(0);
                     }
-                    else if (d_p1p2 < r)
+                    else if (d_p1p2 <= r)
                     {
                         // edge p1p2 is in, run cs on p1p2
                         cs1 = new CylSolver(p1, p2, r, cyl_axis);
                         end_edge_idxs.push_back(1);
                     }
-                    else if (d_p2p0 < r)
+                    else if (d_p2p0 <= r)
                     {
                         // edge p2p0 is in, run cs on p2p0
                         cs1 = new CylSolver(p2, p0, r, cyl_axis);
