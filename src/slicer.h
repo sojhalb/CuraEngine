@@ -527,6 +527,28 @@ public:
         return ((x0 < axis && x1 > axis) || (x1 < axis && x0 > axis));
     }
 
+    bool binsearch(Point3 start, Point3 end, IntPoint cyl_axis, coord_t lim, uint depth, uint depth_lim)
+    {
+        if (++depth > depth_lim)
+            return false;
+        else
+        {
+            Point3 pt = Point3((start.x + end.x) / 2, (start.y + end.y) / 2, (start.z + end.z) / 2);
+            pt.cp = pt.toCylPoint3(cyl_axis.X, cyl_axis.Y);
+            if (pt.floatRadius(cyl_axis.X, cyl_axis.Y) < ((float)lim)) // new point could be rounded down
+                return true;
+            else
+            {
+                if (start.cp->r > pt.cp->r)
+                    start = pt;
+                else if (end.cp->r > pt.cp->r)
+                    end = pt;
+                return binsearch (start, end, cyl_axis, lim, depth, depth_lim);
+            }
+            
+        }
+    }
+
     coord_t dist2axis(Point3 p0, Point3 p1, IntPoint cyl_axis)
     {
         coord_t delX = p1.x - p0.x;
@@ -578,17 +600,27 @@ public:
             }
 
         }
-        //shortest distance b/w two lines only applies if the line segment crosses the cyl_axis
-        else if (segCrossesAxis(p0.x, p1.x, cyl_axis.X) || segCrossesAxis(p0.z, p1.z, cyl_axis.Y))  
+        else
         {
             double mag = sqrt(pow(delZ,2) + pow(delX,2)); 
             dist = abs(dotcross / mag);
+
+            if (binsearch(p0, p1, cyl_axis, std::min(p0.cp->r, p1.cp->r), 0, 100))
+                return dist;
+            else 
+                return dist = std::min(p0.cp->r, p1.cp->r);
         }
-        else 
-        {
-            // otherwise it's the smaller radius of p0 and p1
-            dist = std::min(p0.cp->r, p1.cp->r);
-        }
+        // //shortest distance b/w two lines only applies if the line segment crosses the cyl_axis
+        // else if (segCrossesAxis(p0.x, p1.x, cyl_axis.X) || segCrossesAxis(p0.z, p1.z, cyl_axis.Y))  
+        // {
+        //     double mag = sqrt(pow(delZ,2) + pow(delX,2)); 
+        //     dist = abs(dotcross / mag);
+        // }
+        // else 
+        // {
+        //     // otherwise it's the smaller radius of p0 and p1
+        //     dist = std::min(p0.cp->r, p1.cp->r);
+        // }
         return dist;
     }
 
