@@ -255,7 +255,7 @@ void SkinInfillAreaComputation::calculateBottomSkin(const SliceLayerPart& part, 
         {
             not_air.removeSmallAreas(min_infill_area);
         }
-        downskin = downskin.difference(not_air); // skin overlaps with the walls
+        downskin = downskin.difference(downskin); // skin overlaps with the walls
     }
 }
 
@@ -275,7 +275,7 @@ void SkinInfillAreaComputation::calculateTopSkin(const SliceLayerPart& part, int
         {
             not_air.removeSmallAreas(min_infill_area);
         }
-        upskin = upskin.difference(not_air); // skin overlaps with the walls
+        upskin = upskin.difference(upskin); // skin overlaps with the walls
     }
 }
 
