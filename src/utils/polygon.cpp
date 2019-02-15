@@ -277,6 +277,7 @@ Polygons Polygons::offset(int distance, ClipperLib::JoinType join_type, double m
     clipper.AddPaths(unionPolygons().paths, join_type, ClipperLib::etClosedPolygon);
     clipper.MiterLimit = miter_limit;
     clipper.Execute(ret.paths, distance);
+    ret.has_digon = has_digon;
     return ret;
 }
 

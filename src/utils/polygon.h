@@ -635,6 +635,7 @@ class Polygons
 protected:
     ClipperLib::Paths paths;
 public:
+    bool has_digon;
     unsigned int size() const
     {
         return paths.size();
@@ -716,6 +717,7 @@ public:
     {
         for(unsigned int n=0; n<other.paths.size(); n++)
             paths.push_back(other.paths[n]);
+        has_digon = other.has_digon;
     }
     /*!
      * Add a 'polygon' consisting of two points
@@ -747,8 +749,8 @@ public:
 
     Polygons() {}
 
-    Polygons(const Polygons& other) { paths = other.paths; }
-    Polygons& operator=(const Polygons& other) { paths = other.paths; return *this; }
+    Polygons(const Polygons& other) { paths = other.paths; has_digon = other.has_digon;}
+    Polygons& operator=(const Polygons& other) { paths = other.paths; has_digon = other.has_digon; return *this; }
 
     bool operator==(const Polygons& other) const =delete;
 
@@ -790,6 +792,7 @@ public:
         clipper.AddPaths(paths, ClipperLib::ptSubject, true);
         clipper.AddPaths(other.paths, ClipperLib::ptClip, true);
         clipper.Execute(ClipperLib::ctIntersection, ret.paths);
+        ret.has_digon = has_digon;
         return ret;
     }
 

@@ -184,8 +184,8 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
                     // add the start point to the end to close the poly
                     (*poly).push_back(start_seam_pt);
 
-                    poly.is_digon = true;
                     polygons.add(poly);
+                    polygons.has_digon = true;
                 }
             }
             else
