@@ -1332,6 +1332,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     int extruder = gcode.getExtruderNr();
     bool acceleration_enabled = storage.getSettingBoolean("acceleration_enabled");
     bool jerk_enabled = storage.getSettingBoolean("jerk_enabled");
+    unsigned int fiber_cut_length = storage.getSettingInMicrons("fiber_cut_length");
 
     for(unsigned int extruder_plan_idx = 0; extruder_plan_idx < extruder_plans.size(); extruder_plan_idx++)
     {
@@ -1503,9 +1504,59 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     }
                     else 
                     {
+                        unsigned int split_idx = path.points.size() - 1;
+                        //add a split to the path if the path is a travel
+                        if (path_idx < paths.size() - 1)
+                        {
+                            if (paths[path_idx + 1].isTravelPath())
+                            {
+                                float dist = 0;
+                                float previous_dist = 0;
+                                Point forward_point, back_point;
+                                
+                                // find the index of the line that needs to be split
+                                for( ; (dist < fiber_cut_length); split_idx--)
+                                {
+                                    float seg_length;
+                                    if(path.points.size() == 1)
+                                    {
+                                        // pray that the last path is the exact one we need 
+                                        forward_point = paths[path_idx-1].points.back();
+                                    }
+                                    else
+                                    {
+                                        forward_point = path.points[split_idx-1];
+                                    }
+                                    back_point = path.points[split_idx];
+                                    seg_length = cylSize(back_point, forward_point, z);
+                                    
+                                    dist += seg_length;
+                                    if (dist < fiber_cut_length)
+                                    {
+                                        previous_dist += seg_length;
+                                    }
+                                }
+                                //split the line
+                                assert(dist > previous_dist); 
+                                coord_t to_trim = dist - previous_dist;
+                                Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, z);
+                                if(path.points.size() == 1)
+                                {
+                                    path.points.insert(path.points.begin(), pt);
+                                }
+                                else
+                                {
+                                    path.points.insert(path.points.begin()+split_idx, pt);
+                                }
+                                
+
+                            }
+                        }
                         for(unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
                         {
                             sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), speed);
+                            if(point_idx == split_idx)
+                                gcode.writeComment("SPLIT");
                             gcode.writeExtrusion(path.points[point_idx], speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset, train->getSettingInMicrons("drum_radius"));
                         }
                     }
