@@ -1505,53 +1505,51 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     else 
                     {
                         unsigned int split_idx = path.points.size() - 1;
-                        //add a split to the path if the path is a travel
-                        if (path_idx < paths.size() - 1)
-                        {
-                            if (paths[path_idx + 1].isTravelPath())
-                            {
-                                float dist = 0;
-                                float previous_dist = 0;
-                                Point forward_point, back_point;
-                                
-                                // find the index of the line that needs to be split
-                                for( ; (dist < fiber_cut_length); split_idx--)
-                                {
-                                    float seg_length;
-                                    if(path.points.size() == 1)
-                                    {
-                                        // pray that the last path is the exact one we need 
-                                        forward_point = paths[path_idx-1].points.back();
-                                    }
-                                    else
-                                    {
-                                        forward_point = path.points[split_idx-1];
-                                    }
-                                    back_point = path.points[split_idx];
-                                    seg_length = cylSize(back_point, forward_point, z);
-                                    
-                                    dist += seg_length;
-                                    if (dist < fiber_cut_length)
-                                    {
-                                        previous_dist += seg_length;
-                                    }
-                                }
-                                //split the line
-                                assert(dist > previous_dist); 
-                                coord_t to_trim = dist - previous_dist;
-                                Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, z);
-                                if(path.points.size() == 1)
-                                {
-                                    path.points.insert(path.points.begin(), pt);
-                                }
-                                else
-                                {
-                                    path.points.insert(path.points.begin()+split_idx, pt);
-                                }
-                                
+                        float dist = 0;
+                        float previous_dist = 0;
+                        std::vector<Point> points;
 
+                        //generate a flat list of points
+                        for(unsigned int idx = path_idx; idx >= 0; idx--)
+                        {
+                            for(unsigned int inner_idx = paths[idx].points.size(); inner_idx >= 0; inner_idx--)
+                            {
+                                points.push_back(paths[idx].points[inner_idx]);
                             }
                         }
+
+                        //find the split point
+                        Point forward_point, back_point;
+                        for(unsigned int split_index ; (dist < fiber_cut_length); split_idx--)
+                        {
+                            float seg_length;
+                            forward_point = path.points[split_idx-1];
+                            back_point = path.points[split_idx];
+
+                            seg_length = cylSize(back_point, forward_point, z);
+                            
+                            dist += seg_length;
+                            if (dist < fiber_cut_length)
+                            {
+                                previous_dist += seg_length;
+                            }
+                        }
+
+                        //look for the forward point while maintaining list structure
+                        for(unsigned int idx = path_idx; idx >= 0; idx--)
+                        {
+                            for(unsigned int inner_idx = paths[idx].points.size(); inner_idx >= 0; inner_idx--)
+                            {
+                                if(paths[idx].points[inner_idx] == forward_point)
+                                {
+                                    assert(dist > previous_dist); 
+                                    coord_t to_trim = dist - previous_dist;
+                                    Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, z);
+                                    path.points.insert(path.points.begin()+inner_idx, pt);
+                                }
+                            }
+                        }
+
                         for(unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
                         {
                             sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), speed);
