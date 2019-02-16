@@ -31,7 +31,7 @@
                 "-s",
                 "seam_back=47123",
                 "-s",
-                "fiber_cut_length=1.00",
+                "fiber_cut_length=10.00",
                 "-s",
                 "machine_center_is_zero=true",
                 "-s",
