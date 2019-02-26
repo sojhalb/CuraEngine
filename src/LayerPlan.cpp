@@ -1393,66 +1393,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
         bool update_extrusion_offset = true;
 
-        // handle split if fiber extrusion is enabled 
-        // the next path has to be a travel
-        for(unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
-        {
-            auto path = paths[path_idx];
-            bool split = false;
-            if (path_idx != paths.size() - 1 && paths[path_idx + 1].isTravelPath())
-            {
-                split = true;
-                float dist = 0;
-                float previous_dist = 0;
-                std::vector<Point> points;
-
-                //generate a flat list of points
-                for(int idx = path_idx; idx >= 0; idx--)
-                {
-                    for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
-                    {
-                        points.push_back(paths[idx].points[inner_idx]);
-                    }
-                }
-
-                //find the split point
-                int split_idx = points.size() - 1;
-                Point forward_point, back_point;
-                for(int split_index ; (dist < fiber_cut_length) && split_idx > 0; split_idx--)
-                {
-                    float seg_length;
-                    forward_point = points[split_idx-1];
-                    back_point = points[split_idx];
-
-                    seg_length = cylSize(back_point, forward_point, z);
-                    
-                    dist += seg_length;
-                    if (dist < fiber_cut_length)
-                    {
-                        previous_dist += seg_length;
-                    }
-                }
-
-                assert(dist > previous_dist); 
-
-                //look for the forward point while maintaining list structure
-                for(int idx = path_idx; idx >= 0; idx--)
-                {
-                    for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
-                    {
-                        if(paths[idx].points[inner_idx] == forward_point)
-                        {
-                            coord_t to_trim = dist - previous_dist;
-                            Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, z);
-                            path.points.insert(path.points.begin()+inner_idx, pt);
-                            gcode.writeComment("inserting...");
-                            log("path_idx: %d \n", path_idx);
-                        }
-                    }
-                }
-            }
-        }
-
         for(unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
         {
             extruder_plan.handleInserts(path_idx, gcode);
