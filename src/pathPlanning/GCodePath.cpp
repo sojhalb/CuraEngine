@@ -27,6 +27,16 @@ bool GCodePath::isTravelPath()
     return config->isTravelPath();
 }
 
+unsigned int GCodePath::getCylLength(coord_t height)
+{
+    unsigned int length;
+    for(unsigned int idx = 0; idx < points.size() - 1; idx++)
+    {
+        length += cylSize(points[idx], points[idx + 1], height);
+    }
+    return length;
+}
+
 double GCodePath::getExtrusionMM3perMM()
 {
     return flow * config->getExtrusionMM3perMM();

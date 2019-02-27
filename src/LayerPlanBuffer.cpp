@@ -191,7 +191,7 @@ Preheat::WarmUpResult LayerPlanBuffer::computeStandbyTempPlan(std::vector<Extrud
     return warm_up;
 }
 
-bool nextTravelIsNotShort(std::vector<GCodePath> &paths, unsigned int next_path_idx, Point last_point, unsigned int z, unsigned int threshold = 500)
+bool nextTravelIsNotShort(std::vector<GCodePath> &paths, unsigned int next_path_idx, Point last_point, unsigned int z, unsigned int threshold = 1000)
 {
     // have to calculate travel with all paths after next_path that are marked as travel path
     auto next_path = paths[next_path_idx++];
@@ -205,6 +205,7 @@ bool nextTravelIsNotShort(std::vector<GCodePath> &paths, unsigned int next_path_
     while(next_path.isTravelPath())
     {
         travel_length += cylSize(next_path.points.front(), pt, z);
+        travel_length += next_path.getCylLength(z);
 
         if(next_path_idx == paths.size())
             break;

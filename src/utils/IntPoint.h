@@ -80,7 +80,8 @@ INLINE float cylSize(const Point& p0, const Point& p1, coord_t z_height)
 {
     auto p = cylDiff(p0, p1);
     float arc_length = z_height * ((float)p.X / (float)THETAFACTOR);
-    return sqrt(arc_length*arc_length + p.Y*p.Y);
+    double temp = sqrt(arc_length*arc_length + p.Y*p.Y);
+    return temp;
 }
 INLINE Point cylSurfaceLerp(coord_t dist, const Point& p0, const Point& p1, coord_t z_height)
 {
