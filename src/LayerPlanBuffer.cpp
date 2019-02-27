@@ -44,6 +44,7 @@ LayerPlan* LayerPlanBuffer::processBuffer()
     if (buffer.size() >= 2)
     {
         addConnectingTravelMove(*--(--buffer.end()), *--buffer.end());
+        insertCutCommand(*--(--buffer.end()));
     }
     if (buffer.size() > 0)
     {
@@ -191,103 +192,85 @@ Preheat::WarmUpResult LayerPlanBuffer::computeStandbyTempPlan(std::vector<Extrud
     return warm_up;
 }
 
-bool nextTravelIsNotShort(std::vector<GCodePath> &paths, unsigned int next_path_idx, Point last_point, unsigned int z, unsigned int threshold = 2000)
+
+
+void LayerPlanBuffer::insertCutCommand(LayerPlan* layer_plan)
 {
-    // have to calculate travel with all paths after next_path that are marked as travel path
-    auto next_path = paths[next_path_idx++];
-    auto pt = last_point;
-    // fast return if the next path isn't a travel
-    if (!next_path.isTravelPath())
-        return false;
-
-    // otherwise calculate the length of the travel, assuming travels only have 1 point per path...
-    unsigned int travel_length = 0;
-    while(next_path.isTravelPath())
-    {
-        travel_length += cylSize(next_path.points.front(), pt, z);
-        travel_length += next_path.getCylLength(z);
-
-        if(next_path_idx == paths.size())
-            break;
-        pt = next_path.points.front();
-        next_path = paths[next_path_idx++];
-    }
-    
-    return travel_length > threshold;
-}
-
-void LayerPlanBuffer::insertCutCommand(ExtruderPlan& prev_extruder_plan)
-{
-    // find the right point to cut
-    auto paths = prev_extruder_plan.paths;
-    unsigned int fiber_cut_length = buffer.back()->storage.getSettingInMillimeters("fiber_cut_length");
-    unsigned int threshold = buffer.back()->storage.getSettingInMicrons("fiber_cut_travel_threshold");
-    for(unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
-    {
-        auto path = paths[path_idx];
-        bool split = false;
-        if (path_idx != paths.size() - 1 && !path.isTravelPath() && nextTravelIsNotShort(paths, path_idx + 1, path.points.back(), buffer.back()->z, threshold))
-        {
-            split = true;
-            float dist = 0;
-            float previous_dist = 0;
-            std::vector<Point> points;
-
-            //generate a flat list of points
-            for(int idx = path_idx; idx >= 0; idx--)
-            {
-                for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
-                {
-                    points.push_back(paths[idx].points[inner_idx]);
-                }
-            }
-
-            //find the split point
-            int split_idx = 0;
-            Point forward_point, back_point;
-            for(; (dist < fiber_cut_length) && split_idx < points.size() - 1; split_idx++)
-            {
-                float seg_length;
-                forward_point = points[split_idx];
-                back_point = points[split_idx + 1];
-
-                seg_length = cylSize(back_point, forward_point, buffer.back()->z);
-                
-                dist += seg_length;
-                if (dist < fiber_cut_length)
-                {
-                    previous_dist += seg_length;
-                }
-            }
-
-            assert(dist > previous_dist); 
-
-            //look for the forward point while maintaining list structure
-            for(int idx = path_idx; idx >= 0; idx--)
-            {
-                bool break_again = false;
-                for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
-                {
-                    if(paths[idx].points[inner_idx] == forward_point)
-                    {
-                        coord_t to_trim = dist - previous_dist;
-                        Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, buffer.back()->z);
-                        paths[idx].points.insert(paths[idx].points.begin()+inner_idx, pt);
-                        gcode.writeComment("inserting...");
-                        gcode.writeTimeComment(path_idx);
-                        gcode.writeTimeComment(inner_idx);
-                        log("path_idx: %d \n", path_idx);
-                        break_again = true;
-                        break;
-                    }
-                }
-                if(break_again)
-                    break;
-            }
-        }
-    } 
+    layer_plan->addCut();
     return;
 }
+//     // find the right point to cut
+//     ExtruderPlan* prev_extruder_plan = &layer_plan->extruder_plans.front();
+//     std::vector<Point> paths = prev_extruder_plan->paths;
+//     unsigned int fiber_cut_length = buffer.back()->storage.getSettingInMillimeters("fiber_cut_length");
+//     unsigned int threshold = buffer.back()->storage.getSettingInMicrons("fiber_cut_travel_threshold");
+//     for(unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
+//     {
+//         auto path = paths[path_idx];
+//         bool split = false;
+//         if (path_idx != paths.size() - 1 && !path.isTravelPath() && nextTravelIsNotShort(paths, path_idx + 1, path.points.back(), buffer.back()->z, threshold))
+//         {
+//             split = true;
+//             float dist = 0;
+//             float previous_dist = 0;
+//             std::vector<Point> points;
+
+//             //generate a flat list of points
+//             for(int idx = path_idx; idx >= 0; idx--)
+//             {
+//                 for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
+//                 {
+//                     points.push_back(paths[idx].points[inner_idx]);
+//                 }
+//             }
+
+//             //find the split point
+//             int split_idx = 0;
+//             Point forward_point, back_point;
+//             for(; (dist < fiber_cut_length) && split_idx < points.size() - 1; split_idx++)
+//             {
+//                 float seg_length;
+//                 forward_point = points[split_idx];
+//                 back_point = points[split_idx + 1];
+
+//                 seg_length = cylSize(back_point, forward_point, buffer.back()->z);
+                
+//                 dist += seg_length;
+//                 if (dist < fiber_cut_length)
+//                 {
+//                     previous_dist += seg_length;
+//                 }
+//             }
+
+//             assert(dist > previous_dist); 
+
+//             //look for the forward point while maintaining list structure
+//             for(int idx = path_idx; idx >= 0; idx--)
+//             {
+//                 bool break_again = false;
+//                 for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
+//                 {
+//                     if(paths[idx].points[inner_idx] == forward_point)
+//                     {
+//                         coord_t to_trim = dist - previous_dist;
+//                         Point pt = Point(99999, 99999);
+//                         //Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, buffer.back()->z);
+//                         paths[idx].points.insert(paths[idx].points.begin()+inner_idx, pt);
+//                         gcode.writeComment("inserting...");
+//                         gcode.writeTimeComment(path_idx);
+//                         gcode.writeTimeComment(inner_idx);
+//                         log("path_idx: %d \n", path_idx);
+//                         break_again = true;
+//                         break;
+//                     }
+//                 }
+//                 if(break_again)
+//                     break;
+//             }
+//         }
+//     } 
+//     return;
+// }
 
 void LayerPlanBuffer::insertPreheatCommand_singleExtrusion(ExtruderPlan& prev_extruder_plan, int extruder, double required_temp)
 {
@@ -385,7 +368,6 @@ void LayerPlanBuffer::insertTempCommands(std::vector<ExtruderPlan*>& extruder_pl
     if (prev_extruder == extruder)
     {
         insertPreheatCommand_singleExtrusion(*prev_extruder_plan, extruder, extruder_plan.required_start_temperature);
-        insertCutCommand(*prev_extruder_plan);
         prev_extruder_plan->extrusion_temperature_command = --prev_extruder_plan->inserts.end();
     }
     else 

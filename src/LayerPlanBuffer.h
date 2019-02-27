@@ -130,7 +130,7 @@ private:
      * 
      * \param prev_extruder_plan The former extruder plan (of the former layer)
      */
-    void insertCutCommand(ExtruderPlan& prev_extruder_plan);
+    void insertCutCommand(LayerPlan* layer_plan);
     /*!
      * For two consecutive extruder plans of the same extruder (so on different layers), 
      * preheat the extruder to the temperature corresponding to the average flow of the second extruder plan.

@@ -440,6 +440,8 @@ public:
         overhang_mask = polys;
     }
 
+    void addCut();
+
     /*!
      * Add a travel path to a certain point, retract if needed and when avoiding boundary crossings:
      * avoiding obstacles and comb along the boundary of parts.

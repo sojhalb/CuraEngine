@@ -1093,6 +1093,9 @@ void GCodeExport::writeTemperatureCommand(int extruder, double temperature, bool
 
 void GCodeExport::writeCutCommand(int extruder)
 {
+
+    *output_stream << "CUT COMMAND" << new_line; // get temperatures from the last update, the M109 will not let get the target temperature
+
     return;
     // taken from writeTemperatureCommand
 //     if (wait && flavor != EGCodeFlavor::MAKERBOT)
