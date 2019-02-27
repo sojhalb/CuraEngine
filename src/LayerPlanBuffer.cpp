@@ -191,7 +191,7 @@ Preheat::WarmUpResult LayerPlanBuffer::computeStandbyTempPlan(std::vector<Extrud
     return warm_up;
 }
 
-bool nextTravelIsNotShort(std::vector<GCodePath> &paths, unsigned int next_path_idx, Point last_point, unsigned int z, unsigned int threshold = 1000)
+bool nextTravelIsNotShort(std::vector<GCodePath> &paths, unsigned int next_path_idx, Point last_point, unsigned int z, unsigned int threshold = 2000)
 {
     // have to calculate travel with all paths after next_path that are marked as travel path
     auto next_path = paths[next_path_idx++];
@@ -221,11 +221,12 @@ void LayerPlanBuffer::insertCutCommand(ExtruderPlan& prev_extruder_plan)
     // find the right point to cut
     auto paths = prev_extruder_plan.paths;
     unsigned int fiber_cut_length = buffer.back()->storage.getSettingInMillimeters("fiber_cut_length");
+    unsigned int threshold = buffer.back()->storage.getSettingInMicrons("fiber_cut_travel_threshold");
     for(unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
     {
         auto path = paths[path_idx];
         bool split = false;
-        if (path_idx != paths.size() - 1 && !path.isTravelPath() && nextTravelIsNotShort(paths, path_idx + 1, path.points.back(), buffer.back()->z))
+        if (path_idx != paths.size() - 1 && !path.isTravelPath() && nextTravelIsNotShort(paths, path_idx + 1, path.points.back(), buffer.back()->z, threshold))
         {
             split = true;
             float dist = 0;
@@ -242,13 +243,13 @@ void LayerPlanBuffer::insertCutCommand(ExtruderPlan& prev_extruder_plan)
             }
 
             //find the split point
-            int split_idx = points.size() - 1;
+            int split_idx = 0;
             Point forward_point, back_point;
-            for(; (dist < fiber_cut_length) && split_idx > 0; split_idx--)
+            for(; (dist < fiber_cut_length) && split_idx < points.size() - 1; split_idx++)
             {
                 float seg_length;
-                forward_point = points[split_idx-1];
-                back_point = points[split_idx];
+                forward_point = points[split_idx];
+                back_point = points[split_idx + 1];
 
                 seg_length = cylSize(back_point, forward_point, buffer.back()->z);
                 
@@ -264,20 +265,24 @@ void LayerPlanBuffer::insertCutCommand(ExtruderPlan& prev_extruder_plan)
             //look for the forward point while maintaining list structure
             for(int idx = path_idx; idx >= 0; idx--)
             {
+                bool break_again = false;
                 for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
                 {
                     if(paths[idx].points[inner_idx] == forward_point)
                     {
                         coord_t to_trim = dist - previous_dist;
                         Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, buffer.back()->z);
-                        path.points.insert(path.points.begin()+inner_idx, pt);
+                        paths[idx].points.insert(paths[idx].points.begin()+inner_idx, pt);
                         gcode.writeComment("inserting...");
                         gcode.writeTimeComment(path_idx);
                         gcode.writeTimeComment(inner_idx);
                         log("path_idx: %d \n", path_idx);
+                        break_again = true;
                         break;
                     }
                 }
+                if(break_again)
+                    break;
             }
         }
     } 

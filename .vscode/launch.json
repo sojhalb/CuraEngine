@@ -32,6 +32,8 @@
                 "seam_back=47123",
                 "-s",
                 "fiber_cut_length=10.00",
+                "-s", 
+                "fiber_cut_travel_threshold=2.00",
                 "-s",
                 "machine_center_is_zero=true",
                 "-s",
