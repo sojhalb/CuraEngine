@@ -190,8 +190,68 @@ Preheat::WarmUpResult LayerPlanBuffer::computeStandbyTempPlan(std::vector<Extrud
     return warm_up;
 }
 
-void LayerPlanBuffer::insertCutCommand(ExtruderPlan& extruder_plan)
+void LayerPlanBuffer::insertCutCommand(ExtruderPlan& prev_extruder_plan)
 {
+    // find the right point to cut
+    auto paths = prev_extruder_plan.paths;
+    unsigned int fiber_cut_length = buffer.back()->storage.getSettingInMillimeters("fiber_cut_length");
+    for(unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
+        {
+            auto path = paths[path_idx];
+            bool split = false;
+            if (path_idx != paths.size() - 1 && paths[path_idx + 1].isTravelPath())
+            {
+                split = true;
+                float dist = 0;
+                float previous_dist = 0;
+                std::vector<Point> points;
+
+                //generate a flat list of points
+                for(int idx = path_idx; idx >= 0; idx--)
+                {
+                    for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
+                    {
+                        points.push_back(paths[idx].points[inner_idx]);
+                    }
+                }
+
+                //find the split point
+                int split_idx = points.size() - 1;
+                Point forward_point, back_point;
+                for(int split_index ; (dist < fiber_cut_length) && split_idx > 0; split_idx--)
+                {
+                    float seg_length;
+                    forward_point = points[split_idx-1];
+                    back_point = points[split_idx];
+
+                    seg_length = cylSize(back_point, forward_point, buffer.back()->z);
+                    
+                    dist += seg_length;
+                    if (dist < fiber_cut_length)
+                    {
+                        previous_dist += seg_length;
+                    }
+                }
+
+                assert(dist > previous_dist); 
+
+                //look for the forward point while maintaining list structure
+                for(int idx = path_idx; idx >= 0; idx--)
+                {
+                    for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
+                    {
+                        if(paths[idx].points[inner_idx] == forward_point)
+                        {
+                            coord_t to_trim = dist - previous_dist;
+                            Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, buffer.back()->z);
+                            path.points.insert(path.points.begin()+inner_idx, pt);
+                            gcode.writeComment("inserting...");
+                            log("path_idx: %d \n", path_idx);
+                        }
+                    }
+                }
+            }
+        } 
     return;
 }
 
@@ -554,230 +614,5 @@ void LayerPlanBuffer::insertTempCommands()
         insertTempCommands(extruder_plans, overall_extruder_plan_idx);
     }
 }
-
-// void LayerPlanBuffer::insertCutCommands()
-// {
-//     if (buffer.back()->extruder_plans.size() == 0 || (buffer.back()->extruder_plans.size() == 1 && buffer.back()->extruder_plans[0].paths.size() == 0))
-//     { // disregard empty layer
-//         buffer.pop_back();
-//         return;
-//     }
-
-//     std::vector<ExtruderPlan*> extruder_plans; // sorted in print order
-//     extruder_plans.reserve(buffer.size() * 2);
-//     for (LayerPlan* layer_plan : buffer)
-//     {
-//         for (ExtruderPlan& extr_plan : layer_plan->extruder_plans)
-//         {
-//             extruder_plans.push_back(&extr_plan);
-//         }
-//     }
-
-//     // insert commands for all extruder plans on this layer
-//     LayerPlan& layer_plan = *buffer.back();
-//     for (unsigned int extruder_plan_idx = 0; extruder_plan_idx < layer_plan.extruder_plans.size(); extruder_plan_idx++)
-//     {
-//         unsigned int overall_extruder_plan_idx = extruder_plans.size() - layer_plan.extruder_plans.size() + extruder_plan_idx;
-//         ExtruderPlan& extruder_plan = layer_plan.extruder_plans[extruder_plan_idx];
-//         int extruder = extruder_plan.extruder;
-//         double time = extruder_plan.estimates.getTotalUnretractedTime();
-//         double avg_flow;
-//         if (time > 0.0)
-//         {
-//             avg_flow = extruder_plan.estimates.getMaterial() / time;
-//         }
-//         else
-//         {
-//             assert(extruder_plan.estimates.getMaterial() == 0.0 && "No extrusion time should mean no material usage!");
-//             if (preheat_config.usesFlowDependentTemp(extruder)) //Average flow is only used with flow dependent temperature.
-//             {
-//                 logWarning("Empty extruder plans detected! Temperature control might suffer.\n");
-//             }
-//             avg_flow = 0.0;
-//         }
-
-//         double print_temp = preheat_config.getTemp(extruder, avg_flow, extruder_plan.is_initial_layer);
-//         double initial_print_temp = preheat_config.getInitialPrintTemp(extruder);
-//         if (initial_print_temp == 0.0 // user doesn't want to use initial print temp feature
-//             || !extruder_used_in_meshgroup[extruder] // prime blob uses print temp rather than initial print temp
-//             || (overall_extruder_plan_idx > 0 && extruder_plans[overall_extruder_plan_idx - 1]->extruder == extruder  // prev plan has same extruder ..
-//                 && extruder_plans[overall_extruder_plan_idx - 1]->estimates.getTotalUnretractedTime() > 0.0) // and prev extruder plan already heated to printing temperature
-//         )
-//         {
-//             extruder_plan.required_start_temperature = print_temp;
-//             extruder_used_in_meshgroup[extruder] = true;
-//         }
-//         else
-//         {
-//             extruder_plan.required_start_temperature = initial_print_temp;
-//             extruder_plan.extrusion_temperature = print_temp;
-//         }
-//         assert(extruder_plan.required_start_temperature != -1 && "extruder_plan.required_start_temperature should now have been set");
-
-//         if (buffer.size() == 1 && extruder_plan_idx == 0)
-//         { // the very first extruder plan of the current meshgroup
-//             int extruder = extruder_plan.extruder;
-//             for (int extruder_idx = 0; extruder_idx < getSettingAsCount("machine_extruder_count"); extruder_idx++)
-//             { // set temperature of the first nozzle, turn other nozzles down
-//                 if (FffProcessor::getInstance()->getMeshgroupNr() == 0)
-//                 {
-//                     // override values from GCodeExport::setInitialTemps
-//                     // the first used extruder should be set to the required temp in the start gcode
-//                     // see  FffGcodeWriter::processStartingCode
-//                     if (extruder_idx == extruder)
-//                     {
-//                         gcode.setInitialTemp(extruder_idx, extruder_plan.extrusion_temperature.value_or(extruder_plan.required_start_temperature));
-//                     }
-//                     else 
-//                     {
-//                         gcode.setInitialTemp(extruder_idx, preheat_config.getStandbyTemp(extruder_idx));
-//                     }
-//                 }
-//                 else
-//                 {
-//                     if (extruder_idx != extruder)
-//                     { // TODO: do we need to do this?
-//                         extruder_plan.prev_extruder_standby_temp = preheat_config.getStandbyTemp(extruder_idx);
-//                     }
-//                 }
-//             }
-//             continue;
-//         }
-
-//         insertCutCommands(extruder_plans, overall_extruder_plan_idx);
-//     }
-// }
-
-// void LayerPlanBuffer::insertCutCommands(std::vector<ExtruderPlan*>& extruder_plans, unsigned int extruder_plan_idx)
-// {   
-//     ExtruderPlan& extruder_plan = *extruder_plans[extruder_plan_idx];
-//     int extruder = extruder_plan.extruder;
-    
-    
-//     ExtruderPlan* prev_extruder_plan = extruder_plans[extruder_plan_idx - 1];
-    
-//     int prev_extruder = prev_extruder_plan->extruder;
-    
-//     if (prev_extruder != extruder)
-//     { // set previous extruder to standby temperature
-//         extruder_plan.prev_extruder_standby_temp = preheat_config.getStandbyTemp(prev_extruder);
-//     }
-
-//     //multi extruder not supported yet for cut
-
-//     // if (prev_extruder == extruder)
-//     // {
-//     insertPreheatCommand_singleExtrusion(*prev_extruder_plan, extruder, extruder_plan.required_start_temperature);
-//     prev_extruder_plan->extrusion_temperature_command = --prev_extruder_plan->inserts.end();
-//     // }
-//     // else 
-//     // {
-//     //     insertPreheatCommand_multiExtrusion(extruder_plans, extruder_plan_idx);
-//     //     insertFinalPrintTempCommand(extruder_plans, extruder_plan_idx - 1);
-//     //     insertPrintTempCommand(extruder_plan);
-//     // }
-// }
-
-// void LayerPlanBuffer::insertCutCommand_singleExtrusion(ExtruderPlan& prev_extruder_plan, int extruder, double required_temp)
-// {
-//     if (!gcode.getExtruderUsesTemp(extruder))
-//     {
-//         return;
-//     }
-//     // time_before_extruder_plan_end is halved, so that at the layer change the temperature will be half way betewen the two requested temperatures
-//     constexpr bool during_printing = true;
-//     const double prev_extrusion_temp = prev_extruder_plan.extrusion_temperature.value_or(prev_extruder_plan.required_start_temperature);
-//     double time_before_extruder_plan_end = 0.5 * preheat_config.getTimeToGoFromTempToTemp(extruder, prev_extrusion_temp, required_temp, during_printing);
-//     time_before_extruder_plan_end = std::min(prev_extruder_plan.estimates.getTotalTime(), time_before_extruder_plan_end);
-
-//     insertCutCommand(prev_extruder_plan, time_before_extruder_plan_end, extruder, required_temp);
-// }
-
-// void LayerPlanBuffer::insertCutCommand(ExtruderPlan& extruder_plan_before, double time_after_extruder_plan_start, int extruder, double temp)
-// {
-//     double acc_time = 0.0;
-
-// // find the right point to cut
-// for(unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
-//         {
-//             auto path = paths[path_idx];
-//             bool split = false;
-//             if (path_idx != paths.size() - 1 && paths[path_idx + 1].isTravelPath())
-//             {
-//                 split = true;
-//                 float dist = 0;
-//                 float previous_dist = 0;
-//                 std::vector<Point> points;
-
-//                 //generate a flat list of points
-//                 for(int idx = path_idx; idx >= 0; idx--)
-//                 {
-//                     for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
-//                     {
-//                         points.push_back(paths[idx].points[inner_idx]);
-//                     }
-//                 }
-
-//                 //find the split point
-//                 int split_idx = points.size() - 1;
-//                 Point forward_point, back_point;
-//                 for(int split_index ; (dist < fiber_cut_length) && split_idx > 0; split_idx--)
-//                 {
-//                     float seg_length;
-//                     forward_point = points[split_idx-1];
-//                     back_point = points[split_idx];
-
-//                     seg_length = cylSize(back_point, forward_point, z);
-                    
-//                     dist += seg_length;
-//                     if (dist < fiber_cut_length)
-//                     {
-//                         previous_dist += seg_length;
-//                     }
-//                 }
-
-//                 assert(dist > previous_dist); 
-
-//                 //look for the forward point while maintaining list structure
-//                 for(int idx = path_idx; idx >= 0; idx--)
-//                 {
-//                     for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
-//                     {
-//                         if(paths[idx].points[inner_idx] == forward_point)
-//                         {
-//                             coord_t to_trim = dist - previous_dist;
-//                             Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, z);
-//                             path.points.insert(path.points.begin()+inner_idx, pt);
-//                             gcode.writeComment("inserting...");
-//                             log("path_idx: %d \n", path_idx);
-//                         }
-//                     }
-//                 }
-//             }
-//         } 
-
-//     for (unsigned int path_idx = extruder_plan_before.paths.size() - 1; int(path_idx) != -1 ; path_idx--)
-//     {
-//         GCodePath& path = extruder_plan_before.paths[path_idx];
-//         const double time_this_path = path.estimates.getTotalTime();
-//         acc_time += time_this_path;
-//         if (acc_time > time_after_extruder_plan_start)
-//         {
-//             const double time_before_path_end = acc_time - time_after_extruder_plan_start;
-//             bool wait = false;
-//             extruder_plan_before.insertCommand(path_idx, extruder, temp, wait, time_this_path - time_before_path_end);
-//             return;
-//         }
-//     }
-
-
-
-
-//     bool wait = false;
-//     unsigned int path_idx = 0;
-//     extruder_plan_before.insertCommand(path_idx, extruder, temp, wait); // insert at start of extruder plan if time_after_extruder_plan_start > extruder_plan.time
-// }
-
-
 
 } // namespace cura
