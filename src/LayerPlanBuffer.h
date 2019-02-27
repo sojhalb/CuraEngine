@@ -125,6 +125,13 @@ private:
     Preheat::WarmUpResult computeStandbyTempPlan(std::vector<ExtruderPlan*>& extruder_plans, unsigned int extruder_plan_idx);
 
     /*!
+     * The former extruder plan should have all travels added so it is safe to add the cut
+     * into the paths of the plan. 
+     * 
+     * \param prev_extruder_plan The former extruder plan (of the former layer)
+     */
+    void insertCutCommand(ExtruderPlan& prev_extruder_plan);
+    /*!
      * For two consecutive extruder plans of the same extruder (so on different layers), 
      * preheat the extruder to the temperature corresponding to the average flow of the second extruder plan.
      * 

@@ -48,7 +48,6 @@ LayerPlan* LayerPlanBuffer::processBuffer()
     if (buffer.size() > 0)
     {
         insertTempCommands(); // insert preheat commands of the just completed layer plan (not the newly emplaced one)
-        insertCutCommands();
     }
     if (buffer.size() > buffer_size)
     {
@@ -191,6 +190,11 @@ Preheat::WarmUpResult LayerPlanBuffer::computeStandbyTempPlan(std::vector<Extrud
     return warm_up;
 }
 
+void LayerPlanBuffer::insertCutCommand(ExtruderPlan& extruder_plan)
+{
+    return;
+}
+
 void LayerPlanBuffer::insertPreheatCommand_singleExtrusion(ExtruderPlan& prev_extruder_plan, int extruder, double required_temp)
 {
     if (!gcode.getExtruderUsesTemp(extruder))
@@ -287,6 +291,7 @@ void LayerPlanBuffer::insertTempCommands(std::vector<ExtruderPlan*>& extruder_pl
     if (prev_extruder == extruder)
     {
         insertPreheatCommand_singleExtrusion(*prev_extruder_plan, extruder, extruder_plan.required_start_temperature);
+        insertCutCommand(*prev_extruder_plan);
         prev_extruder_plan->extrusion_temperature_command = --prev_extruder_plan->inserts.end();
     }
     else 
