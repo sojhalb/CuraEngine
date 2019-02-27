@@ -8,6 +8,7 @@
 #include "pathPlanning/Comb.h"
 #include "pathPlanning/GCodePath.h"
 #include "pathPlanning/NozzleTempInsert.h"
+#include "pathPlanning/CutInsert.h"
 #include "pathPlanning/TimeMaterialEstimates.h"
 #include "utils/polygon.h"
 #include "utils/logoutput.h"
@@ -41,6 +42,7 @@ class ExtruderPlan
 protected:
     std::vector<GCodePath> paths; //!< The paths planned for this extruder
     std::list<NozzleTempInsert> inserts; //!< The nozzle temperature command inserts, to be inserted in between paths
+    std::list<CutInsert> cut_inserts; //!< The cut command inserts, to be inserted at a specific index at a specific path
 
     int extruder; //!< The extruder used for this paths in the current plan.
     double heated_pre_travel_time; //!< The time at the start of this ExtruderPlan during which the head travels and has a temperature of initial_print_temperature

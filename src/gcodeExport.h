@@ -436,6 +436,7 @@ public:
     void writeFanCommand(double speed);
     
     void writeTemperatureCommand(int extruder, double temperature, bool wait = false);
+    void writeCutCommand(int extruder);
     void writeBedTemperatureCommand(double temperature, bool wait = false);
 
     /*!
