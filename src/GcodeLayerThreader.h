@@ -123,7 +123,7 @@ GcodeLayerThreader<T>::GcodeLayerThreader(
 template <typename T>
 void GcodeLayerThreader<T>::run()
 {
-    #pragma omp parallel
+    //#pragma omp parallel
     {
 #ifdef _OPENMP
         #pragma omp master
