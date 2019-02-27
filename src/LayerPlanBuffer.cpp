@@ -199,78 +199,7 @@ void LayerPlanBuffer::insertCutCommand(LayerPlan* layer_plan)
     layer_plan->addCut();
     return;
 }
-//     // find the right point to cut
-//     ExtruderPlan* prev_extruder_plan = &layer_plan->extruder_plans.front();
-//     std::vector<Point> paths = prev_extruder_plan->paths;
-//     unsigned int fiber_cut_length = buffer.back()->storage.getSettingInMillimeters("fiber_cut_length");
-//     unsigned int threshold = buffer.back()->storage.getSettingInMicrons("fiber_cut_travel_threshold");
-//     for(unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
-//     {
-//         auto path = paths[path_idx];
-//         bool split = false;
-//         if (path_idx != paths.size() - 1 && !path.isTravelPath() && nextTravelIsNotShort(paths, path_idx + 1, path.points.back(), buffer.back()->z, threshold))
-//         {
-//             split = true;
-//             float dist = 0;
-//             float previous_dist = 0;
-//             std::vector<Point> points;
 
-//             //generate a flat list of points
-//             for(int idx = path_idx; idx >= 0; idx--)
-//             {
-//                 for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
-//                 {
-//                     points.push_back(paths[idx].points[inner_idx]);
-//                 }
-//             }
-
-//             //find the split point
-//             int split_idx = 0;
-//             Point forward_point, back_point;
-//             for(; (dist < fiber_cut_length) && split_idx < points.size() - 1; split_idx++)
-//             {
-//                 float seg_length;
-//                 forward_point = points[split_idx];
-//                 back_point = points[split_idx + 1];
-
-//                 seg_length = cylSize(back_point, forward_point, buffer.back()->z);
-                
-//                 dist += seg_length;
-//                 if (dist < fiber_cut_length)
-//                 {
-//                     previous_dist += seg_length;
-//                 }
-//             }
-
-//             assert(dist > previous_dist); 
-
-//             //look for the forward point while maintaining list structure
-//             for(int idx = path_idx; idx >= 0; idx--)
-//             {
-//                 bool break_again = false;
-//                 for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
-//                 {
-//                     if(paths[idx].points[inner_idx] == forward_point)
-//                     {
-//                         coord_t to_trim = dist - previous_dist;
-//                         Point pt = Point(99999, 99999);
-//                         //Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, buffer.back()->z);
-//                         paths[idx].points.insert(paths[idx].points.begin()+inner_idx, pt);
-//                         gcode.writeComment("inserting...");
-//                         gcode.writeTimeComment(path_idx);
-//                         gcode.writeTimeComment(inner_idx);
-//                         log("path_idx: %d \n", path_idx);
-//                         break_again = true;
-//                         break;
-//                     }
-//                 }
-//                 if(break_again)
-//                     break;
-//             }
-//         }
-//     } 
-//     return;
-// }
 
 void LayerPlanBuffer::insertPreheatCommand_singleExtrusion(ExtruderPlan& prev_extruder_plan, int extruder, double required_temp)
 {
