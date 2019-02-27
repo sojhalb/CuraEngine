@@ -191,11 +191,28 @@ Preheat::WarmUpResult LayerPlanBuffer::computeStandbyTempPlan(std::vector<Extrud
     return warm_up;
 }
 
-bool nextTravelIsNotShort(GCodePath next_path, Point last_point, unsigned int z, unsigned int threshold = 500)
+bool nextTravelIsNotShort(std::vector<GCodePath> &paths, unsigned int next_path_idx, Point last_point, unsigned int z, unsigned int threshold = 500)
 {
     // have to calculate travel with all paths after next_path that are marked as travel path
-    unsigned int travel_length = cylSize(next_path.points.front(), last_point, z);
-    return next_path.isTravelPath() && travel_length > threshold;
+    auto next_path = paths[next_path_idx++];
+    auto pt = last_point;
+    // fast return if the next path isn't a travel
+    if (!next_path.isTravelPath())
+        return false;
+
+    // otherwise calculate the length of the travel, assuming travels only have 1 point per path...
+    unsigned int travel_length = 0;
+    while(next_path.isTravelPath())
+    {
+        travel_length += cylSize(next_path.points.front(), pt, z);
+
+        if(next_path_idx == paths.size())
+            break;
+        pt = next_path.points.front();
+        next_path = paths[next_path_idx++];
+    }
+    
+    return travel_length > threshold;
 }
 
 void LayerPlanBuffer::insertCutCommand(ExtruderPlan& prev_extruder_plan)
@@ -204,65 +221,65 @@ void LayerPlanBuffer::insertCutCommand(ExtruderPlan& prev_extruder_plan)
     auto paths = prev_extruder_plan.paths;
     unsigned int fiber_cut_length = buffer.back()->storage.getSettingInMillimeters("fiber_cut_length");
     for(unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
+    {
+        auto path = paths[path_idx];
+        bool split = false;
+        if (path_idx != paths.size() - 1 && !path.isTravelPath() && nextTravelIsNotShort(paths, path_idx + 1, path.points.back(), buffer.back()->z))
         {
-            auto path = paths[path_idx];
-            bool split = false;
-            if (path_idx != paths.size() - 1 && !path.isTravelPath() && nextTravelIsNotShort(paths[path_idx + 1], path.points.back(), buffer.back()->z))
+            split = true;
+            float dist = 0;
+            float previous_dist = 0;
+            std::vector<Point> points;
+
+            //generate a flat list of points
+            for(int idx = path_idx; idx >= 0; idx--)
             {
-                split = true;
-                float dist = 0;
-                float previous_dist = 0;
-                std::vector<Point> points;
-
-                //generate a flat list of points
-                for(int idx = path_idx; idx >= 0; idx--)
+                for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
                 {
-                    for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
-                    {
-                        points.push_back(paths[idx].points[inner_idx]);
-                    }
+                    points.push_back(paths[idx].points[inner_idx]);
                 }
+            }
 
-                //find the split point
-                int split_idx = points.size() - 1;
-                Point forward_point, back_point;
-                for(; (dist < fiber_cut_length) && split_idx > 0; split_idx--)
+            //find the split point
+            int split_idx = points.size() - 1;
+            Point forward_point, back_point;
+            for(; (dist < fiber_cut_length) && split_idx > 0; split_idx--)
+            {
+                float seg_length;
+                forward_point = points[split_idx-1];
+                back_point = points[split_idx];
+
+                seg_length = cylSize(back_point, forward_point, buffer.back()->z);
+                
+                dist += seg_length;
+                if (dist < fiber_cut_length)
                 {
-                    float seg_length;
-                    forward_point = points[split_idx-1];
-                    back_point = points[split_idx];
-
-                    seg_length = cylSize(back_point, forward_point, buffer.back()->z);
-                    
-                    dist += seg_length;
-                    if (dist < fiber_cut_length)
-                    {
-                        previous_dist += seg_length;
-                    }
+                    previous_dist += seg_length;
                 }
+            }
 
-                assert(dist > previous_dist); 
+            assert(dist > previous_dist); 
 
-                //look for the forward point while maintaining list structure
-                for(int idx = path_idx; idx >= 0; idx--)
+            //look for the forward point while maintaining list structure
+            for(int idx = path_idx; idx >= 0; idx--)
+            {
+                for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
                 {
-                    for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
+                    if(paths[idx].points[inner_idx] == forward_point)
                     {
-                        if(paths[idx].points[inner_idx] == forward_point)
-                        {
-                            coord_t to_trim = dist - previous_dist;
-                            Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, buffer.back()->z);
-                            path.points.insert(path.points.begin()+inner_idx, pt);
-                            gcode.writeComment("inserting...");
-                            gcode.writeTimeComment(path_idx);
-                            gcode.writeTimeComment(inner_idx);
-                            log("path_idx: %d \n", path_idx);
-                            break;
-                        }
+                        coord_t to_trim = dist - previous_dist;
+                        Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, buffer.back()->z);
+                        path.points.insert(path.points.begin()+inner_idx, pt);
+                        gcode.writeComment("inserting...");
+                        gcode.writeTimeComment(path_idx);
+                        gcode.writeTimeComment(inner_idx);
+                        log("path_idx: %d \n", path_idx);
+                        break;
                     }
                 }
             }
-        } 
+        }
+    } 
     return;
 }
 
