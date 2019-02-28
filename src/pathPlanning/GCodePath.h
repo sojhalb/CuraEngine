@@ -61,6 +61,8 @@ public:
      */
     bool isTravelPath();
 
+    bool isCut();
+
     /*!
      * Calculates CylLength between points in this path
      * 

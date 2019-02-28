@@ -27,6 +27,11 @@ bool GCodePath::isTravelPath()
     return config->isTravelPath();
 }
 
+bool GCodePath::isCut()
+{
+    return config->isCut();
+}
+
 unsigned int GCodePath::getCylLength(coord_t height)
 {
     unsigned int length;
