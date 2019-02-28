@@ -427,10 +427,32 @@ void LayerPlan::addCut()
                         coord_t to_trim = dist - previous_dist;
                         Point pt = Point(99999, 99999);
                         //Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, buffer.back()->z);
-                        paths[idx].points.insert(paths[idx].points.begin()+inner_idx, pt);
-                        //gcode.writeComment("inserting...");
-                        //gcode.writeTimeComment(path_idx);
-                        //gcode.writeTimeComment(inner_idx);
+
+                        //make a new path based off of path, keep all settings PrintFeatureType
+                        GCodePath cut_path = path;
+                        // I hate this constructor so much
+                        GCodePathConfig::SpeedDerivatives sd;
+                        sd.speed = path.config->getSpeed();
+                        sd.acceleration = path.config->getAcceleration();
+                        sd.jerk = path.config->getJerk();
+                        cut_path.config = new GCodePathConfig(PrintFeatureType::Cut, 
+                        path.config->getLineWidth(), 
+                        path.config->getLayerThickness(), 
+                        path.config->getFlowPercentage(), 
+                        sd,
+                        path.config->isBridgePath(), 
+                        path.config->getFanSpeed());
+
+                        cut_path.points.clear();
+                        cut_path.points.push_back(pt);
+                        cut_path.points.insert(cut_path.points.end(),paths[idx].points.begin()+inner_idx, paths[idx].points.end());
+                        // erase the points from the original path
+                        paths[idx].points.erase(paths[idx].points.begin()+inner_idx, paths[idx].points.end());
+                        // add the cut path to the end of paths
+                        paths.insert(paths.begin() + path_idx, cut_path);
+                        // go ahead and increment so we don't check the newly added path
+                        path_idx++;
+
                         log("path_idx: %d \n", path_idx);
                         break_again = true;
                         break;
