@@ -449,7 +449,7 @@ void LayerPlan::addCut()
                         // erase the points from the original path
                         paths[idx].points.erase(paths[idx].points.begin()+inner_idx, paths[idx].points.end());
                         // add the cut path to the end of paths
-                        paths.insert(paths.begin() + path_idx, cut_path);
+                        paths.insert(paths.begin() + idx + 1, cut_path);
                         // go ahead and increment so we don't check the newly added path
                         path_idx++;
 

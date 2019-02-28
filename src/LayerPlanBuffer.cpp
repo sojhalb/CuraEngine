@@ -140,7 +140,6 @@ void LayerPlanBuffer::insertPreheatCommand(ExtruderPlan& extruder_plan_before, d
         acc_time += time_this_path;
         if (acc_time > time_after_extruder_plan_start)
         {
-            gcode.writeComment("how many times does preheat get inserted?");
             const double time_before_path_end = acc_time - time_after_extruder_plan_start;
             bool wait = false;
             extruder_plan_before.insertCommand(path_idx, extruder, temp, wait, time_this_path - time_before_path_end);
