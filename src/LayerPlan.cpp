@@ -1625,13 +1625,13 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     }
                     else 
                     {
-                        if(path.isCut())
-                        {
-                            gcode.writeCode(";CUT COMMENT");
-                        }
                         for(int point_idx = 0; point_idx < path.points.size(); point_idx++)
                         {
-                            //gcode.writeComment("NORMAL");
+                            // the cut is always right after the first point in a cut print feature
+                            if(path.isCut() && point_idx == 1)
+                            {
+                                gcode.writeCode(";CUT COMMENT");
+                            }
                             sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), speed);
                             gcode.writeExtrusion(path.points[point_idx], speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset, train->getSettingInMicrons("drum_radius"));
                         }
