@@ -382,9 +382,6 @@ void LayerPlan::addCut()
         bool split = false;
         if (path_idx != paths.size() - 1 && !path.isTravelPath() && nextTravelIsNotShort(paths, path_idx + 1, path.points.back(), z, threshold))
         {
-            split = true;
-            float dist = 0;
-            float previous_dist = 0;
             std::vector<Point> points;
 
             //generate a flat list of points
@@ -399,7 +396,7 @@ void LayerPlan::addCut()
             //find the split point
             int split_idx = 0;
             Point forward_point, back_point;
-            for(; (dist < fiber_cut_length) && split_idx < points.size() - 1; split_idx++)
+            for(; split_idx < points.size() - 1; split_idx++)
             {
                 float seg_length;
                 forward_point = points[split_idx];
@@ -407,14 +404,15 @@ void LayerPlan::addCut()
 
                 seg_length = cylSize(back_point, forward_point, z);
                 
-                dist += seg_length;
-                if (dist < fiber_cut_length)
+                // this segment is not long enough so look for the cut in the next segment
+                if (!seg_length < fiber_cut_length)
+                    break;
+                else
                 {
-                    previous_dist += seg_length;
+                    fiber_cut_length -= seg_length;
                 }
+                
             }
-
-            assert(dist > previous_dist); 
 
             //look for the forward point while maintaining list structure
             for(int idx = path_idx; idx >= 0; idx--)
@@ -424,9 +422,11 @@ void LayerPlan::addCut()
                 {
                     if(paths[idx].points[inner_idx] == forward_point)
                     {
-                        coord_t to_trim = dist - previous_dist;
-                        Point pt = Point(99999, 99999);
-                        //Point pt = cylSurfaceLerp(to_trim, back_point, forward_point, buffer.back()->z);
+                        //Point pt = Point(99999, 99999);
+                        float segLength = cylSize(back_point, forward_point, z);
+                        float ratio = (segLength - fiber_cut_length) / segLength;
+
+                        Point pt = cylSurfaceLerp(ratio, back_point, forward_point);
 
                         //make a new path based off of path, keep all settings PrintFeatureType
                         GCodePath cut_path = path;
@@ -1625,6 +1625,10 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     }
                     else 
                     {
+                        if(path.isCut())
+                        {
+                            gcode.writeCode(";CUT COMMENT");
+                        }
                         for(int point_idx = 0; point_idx < path.points.size(); point_idx++)
                         {
                             //gcode.writeComment("NORMAL");
