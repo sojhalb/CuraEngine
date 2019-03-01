@@ -345,7 +345,7 @@ std::optional<std::pair<Point, bool>> LayerPlan::getFirstTravelDestinationState(
     return ret;
 }
 
-bool nextTravelIsNotShort(std::vector<GCodePath> &paths, unsigned int next_path_idx, Point last_point, unsigned int z, unsigned int threshold = 2000)
+bool nextTravelIsNotShort(std::vector<GCodePath> &paths, unsigned int next_path_idx, Point last_point, unsigned int z, coord_t drum_radius, unsigned int threshold = 2000)
 {
     // have to calculate travel with all paths after next_path that are marked as travel path
     auto next_path = paths[next_path_idx++];
@@ -365,8 +365,8 @@ bool nextTravelIsNotShort(std::vector<GCodePath> &paths, unsigned int next_path_
             continue;
         }
         
-        travel_length += cylSize(next_path.points.front(), pt, z);
-        travel_length += next_path.getCylLength(z);
+        travel_length += cylSize(next_path.points.front(), pt, z + drum_radius);
+        travel_length += next_path.getCylLength(z + drum_radius);
 
         if(next_path_idx == paths.size())
             break;
@@ -383,6 +383,7 @@ void LayerPlan::addCut()
     std::vector<GCodePath>& paths = prev_extruder_plan.paths;
     unsigned int fiber_cut_length = storage.getSettingInMicrons("fiber_cut_length");
     unsigned int threshold = storage.getSettingInMicrons("fiber_cut_travel_threshold");
+    coord_t drum_radius = storage.getSettingInMicrons("drum_radius");
     for(unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
     {
         GCodePath path = paths[path_idx];
@@ -390,7 +391,7 @@ void LayerPlan::addCut()
         if (path_idx != paths.size() - 1 && 
         !path.isTravelPath() && 
         path.points.size() != 0 && // again with the pointless paths..
-        nextTravelIsNotShort(paths, path_idx + 1, path.points.back(), z, threshold))
+        nextTravelIsNotShort(paths, path_idx + 1, path.points.back(), z, drum_radius, threshold))
         {
             std::vector<Point> points;
 
@@ -405,6 +406,8 @@ void LayerPlan::addCut()
 
             //find the split point
             int split_idx = 0;
+            fiber_cut_length = storage.getSettingInMicrons("fiber_cut_length"); // could be handled better
+
             Point forward_point, back_point;
             for(; split_idx < points.size() - 1; split_idx++)
             {
@@ -412,7 +415,7 @@ void LayerPlan::addCut()
                 forward_point = points[split_idx];
                 back_point = points[split_idx + 1];
 
-                seg_length = cylSize(back_point, forward_point, z);
+                seg_length = cylSize(back_point, forward_point, z + drum_radius);
                 
                 // this segment is not long enough so look for the cut in the next segment
                 if (seg_length < fiber_cut_length)
@@ -433,7 +436,7 @@ void LayerPlan::addCut()
                     if(paths[idx].points[inner_idx] == forward_point)
                     {
                         //Point pt = Point(99999, 99999);
-                        float segLength = cylSize(back_point, forward_point, z);
+                        float segLength = cylSize(back_point, forward_point, z + drum_radius);
                         float ratio = (segLength - fiber_cut_length) / segLength;
 
                         Point pt = cylSurfaceLerp(ratio, back_point, forward_point);
@@ -1640,7 +1643,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                             // the cut is always right after the first point in a cut print feature
                             if(path.isCut() && point_idx == 1)
                             {
-                                gcode.writeCode(";CUT COMMENT");
+                                gcode.writeCode(";TYPE: CUT");
                             }
                             sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), speed);
                             gcode.writeExtrusion(path.points[point_idx], speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset, train->getSettingInMicrons("drum_radius"));
