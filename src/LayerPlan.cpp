@@ -356,8 +356,15 @@ bool nextTravelIsNotShort(std::vector<GCodePath> &paths, unsigned int next_path_
 
     // otherwise calculate the length of the travel, assuming travels only have 1 point per path...
     unsigned int travel_length = 0;
-    while(next_path.isTravelPath())
+    while(next_path.isTravelPath() && next_path_idx < paths.size())
     {
+        //not sure if this is a bug or sometimes paths actually have no points
+        if(next_path.points.size() == 0)
+        {
+            next_path_idx++;
+            continue;
+        }
+        
         travel_length += cylSize(next_path.points.front(), pt, z);
         travel_length += next_path.getCylLength(z);
 
@@ -374,13 +381,16 @@ void LayerPlan::addCut()
 {
     ExtruderPlan& prev_extruder_plan = extruder_plans.front();
     std::vector<GCodePath>& paths = prev_extruder_plan.paths;
-    unsigned int fiber_cut_length = storage.getSettingInMillimeters("fiber_cut_length");
+    unsigned int fiber_cut_length = storage.getSettingInMicrons("fiber_cut_length");
     unsigned int threshold = storage.getSettingInMicrons("fiber_cut_travel_threshold");
     for(unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
     {
         GCodePath path = paths[path_idx];
         bool split = false;
-        if (path_idx != paths.size() - 1 && !path.isTravelPath() && nextTravelIsNotShort(paths, path_idx + 1, path.points.back(), z, threshold))
+        if (path_idx != paths.size() - 1 && 
+        !path.isTravelPath() && 
+        path.points.size() != 0 && // again with the pointless paths..
+        nextTravelIsNotShort(paths, path_idx + 1, path.points.back(), z, threshold))
         {
             std::vector<Point> points;
 
@@ -405,11 +415,11 @@ void LayerPlan::addCut()
                 seg_length = cylSize(back_point, forward_point, z);
                 
                 // this segment is not long enough so look for the cut in the next segment
-                if (!seg_length < fiber_cut_length)
-                    break;
+                if (seg_length < fiber_cut_length)
+                    fiber_cut_length -= seg_length;
                 else
                 {
-                    fiber_cut_length -= seg_length;
+                    break;
                 }
                 
             }
