@@ -168,7 +168,7 @@ void TreeSupport::collisionAreas(const SliceDataStorage& storage, std::vector<st
     const coord_t xy_distance = storage.getSettingInMicrons("support_xy_distance");
     constexpr bool include_helper_parts = false;
     size_t completed = 0; //To track progress in a multi-threaded environment.
-//#pragma omp parallelfor shared(model_collision, storage) schedule(dynamic)
+#pragma omp parallelfor shared(model_collision, storage) schedule(dynamic)
     for (size_t radius_sample = 0; radius_sample < model_collision.size(); radius_sample++)
     {
         const coord_t radius = radius_sample * radius_sample_resolution;
@@ -206,7 +206,7 @@ void TreeSupport::drawCircles(SliceDataStorage& storage, const std::vector<std::
     const double diameter_angle_scale_factor = sin(storage.getSettingInAngleRadians("support_tree_branch_diameter_angle")) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
     const coord_t line_width = storage.getSettingInMicrons("support_line_width");
     size_t completed = 0; //To track progress in a multi-threaded environment.
-//#pragma omp parallelfor shared(storage, contact_nodes)
+#pragma omp parallelfor shared(storage, contact_nodes)
     for (size_t layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++)
     {
         Polygons support_layer;
@@ -651,7 +651,7 @@ void TreeSupport::propagateCollisionAreas(const SliceDataStorage& storage, const
     const double angle = storage.getSettingInAngleRadians("support_tree_angle");
     const coord_t maximum_move_distance = angle < 90 ? (coord_t)(tan(angle) * layer_height) : std::numeric_limits<coord_t>::max();
     size_t completed = 0; //To track progress in a multi-threaded environment.
-//#pragma omp parallelfor shared(model_avoidance) schedule(dynamic)
+#pragma omp parallelfor shared(model_avoidance) schedule(dynamic)
     for (size_t radius_sample = 0; radius_sample < model_avoidance.size(); radius_sample++)
     {
         model_avoidance[radius_sample].push_back(model_collision[radius_sample][0]);
