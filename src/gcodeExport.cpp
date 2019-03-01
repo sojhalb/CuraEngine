@@ -652,7 +652,7 @@ void GCodeExport::writeTravel(int x, int y, int z, double speed)
     CommandSocket::sendLineTo(travel_move_type, Point(x, y), display_width, layer_height, speed);
 
     *output_stream << "G0";
-    writeFXYZE(speed, x, y, z, current_e_value, travel_move_type);
+    writeFBYZE(speed, x, y, z, current_e_value, travel_move_type);
 }
 
 void GCodeExport::writeExtrusion(int x, int y, int z, double speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset, coord_t drum_radius)
@@ -716,7 +716,7 @@ void GCodeExport::writeExtrusion(int x, int y, int z, double speed, double extru
     double new_e_value = current_e_value + extrusion_per_mm * diff.vSizeMMCyl(drum_radius);
 
     *output_stream << "G1";
-    writeFXYZE(speed, x, y, z, new_e_value, feature);
+    writeFBYZE(speed, x, y, z, new_e_value, feature);
 }
 
 void GCodeExport::writeFBYZE(double speed, int x, int y, int z, double e, PrintFeatureType feature)
