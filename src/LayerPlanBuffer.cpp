@@ -44,6 +44,11 @@ LayerPlan* LayerPlanBuffer::processBuffer()
     if (buffer.size() >= 2)
     {
         addConnectingTravelMove(*--(--buffer.end()), *--buffer.end());
+        LayerPlan* lp = *--(--buffer.end());
+        if (lp->storage.getSettingBoolean("fiber_enabled"))
+        {
+            insertCutCommand(lp);
+        }
     }
     if (buffer.size() > 0)
     {
@@ -131,6 +136,7 @@ void LayerPlanBuffer::processFanSpeedLayerTime()
 void LayerPlanBuffer::insertPreheatCommand(ExtruderPlan& extruder_plan_before, double time_after_extruder_plan_start, int extruder, double temp)
 {
     double acc_time = 0.0;
+    
     for (unsigned int path_idx = extruder_plan_before.paths.size() - 1; int(path_idx) != -1 ; path_idx--)
     {
         GCodePath& path = extruder_plan_before.paths[path_idx];
@@ -188,6 +194,15 @@ Preheat::WarmUpResult LayerPlanBuffer::computeStandbyTempPlan(std::vector<Extrud
     warm_up.heating_time = warm_up.heating_time + extra_preheat_time;
     return warm_up;
 }
+
+
+
+void LayerPlanBuffer::insertCutCommand(LayerPlan* layer_plan)
+{
+    layer_plan->addCut();
+    return;
+}
+
 
 void LayerPlanBuffer::insertPreheatCommand_singleExtrusion(ExtruderPlan& prev_extruder_plan, int extruder, double required_temp)
 {

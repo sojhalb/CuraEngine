@@ -61,6 +61,17 @@ public:
      */
     bool isTravelPath();
 
+    bool isCut();
+
+    /*!
+     * Calculates CylLength between points in this path
+     * 
+     * \warning Can only be called after the layer height has been set (which is done while writing the gcode!)
+     * 
+     * \return The flow
+     */
+    unsigned int getCylLength(coord_t height);
+
     /*!
      * Get the material flow in mm^3 per mm traversed.
      * 

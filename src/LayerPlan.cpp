@@ -345,6 +345,140 @@ std::optional<std::pair<Point, bool>> LayerPlan::getFirstTravelDestinationState(
     return ret;
 }
 
+bool nextTravelIsNotShort(std::vector<GCodePath> &paths, unsigned int next_path_idx, Point last_point, unsigned int z, coord_t drum_radius, unsigned int threshold = 2000)
+{
+    // have to calculate travel with all paths after next_path that are marked as travel path
+    auto next_path = paths[next_path_idx++];
+    auto pt = last_point;
+    // fast return if the next path isn't a travel
+    if (!next_path.isTravelPath())
+        return false;
+
+    // otherwise calculate the length of the travel, assuming travels only have 1 point per path...
+    unsigned int travel_length = 0;
+    while(next_path.isTravelPath() && next_path_idx < paths.size())
+    {
+        //not sure if this is a bug or sometimes paths actually have no points
+        if(next_path.points.size() == 0)
+        {
+            next_path_idx++;
+            continue;
+        }
+        
+        travel_length += cylSize(next_path.points.front(), pt, z + drum_radius);
+        travel_length += next_path.getCylLength(z + drum_radius);
+
+        if(next_path_idx == paths.size())
+            break;
+        pt = next_path.points.front();
+        next_path = paths[next_path_idx++];
+    }
+    
+    return travel_length > threshold;
+}
+
+void LayerPlan::addCut()
+{
+    ExtruderPlan& prev_extruder_plan = extruder_plans.front();
+    std::vector<GCodePath>& paths = prev_extruder_plan.paths;
+    unsigned int fiber_cut_length = storage.getSettingInMicrons("fiber_cut_length");
+    unsigned int threshold = storage.getSettingInMicrons("fiber_cut_travel_threshold");
+    coord_t drum_radius = storage.getSettingInMicrons("drum_radius");
+    for(unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
+    {
+        GCodePath path = paths[path_idx];
+        bool split = false;
+        if (path_idx != paths.size() - 1 && 
+        !path.isTravelPath() && 
+        path.points.size() != 0 && // again with the pointless paths..
+        nextTravelIsNotShort(paths, path_idx + 1, path.points.back(), z, drum_radius, threshold))
+        {
+            std::vector<Point> points;
+
+            //generate a flat list of points
+            for(int idx = path_idx; idx >= 0; idx--)
+            {
+                for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
+                {
+                    points.push_back(paths[idx].points[inner_idx]);
+                }
+            }
+
+            //find the split point
+            int split_idx = 0;
+            fiber_cut_length = storage.getSettingInMicrons("fiber_cut_length"); // could be handled better
+
+            Point forward_point, back_point;
+            for(; split_idx < points.size() - 1; split_idx++)
+            {
+                float seg_length;
+                forward_point = points[split_idx];
+                back_point = points[split_idx + 1];
+
+                seg_length = cylSize(back_point, forward_point, z + drum_radius);
+                
+                // this segment is not long enough so look for the cut in the next segment
+                if (seg_length < fiber_cut_length)
+                    fiber_cut_length -= seg_length;
+                else
+                {
+                    break;
+                }
+                
+            }
+
+            //look for the forward point while maintaining list structure
+            for(int idx = path_idx; idx >= 0; idx--)
+            {
+                bool break_again = false;
+                for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
+                {
+                    if(paths[idx].points[inner_idx] == forward_point)
+                    {
+                        //Point pt = Point(99999, 99999);
+                        float segLength = cylSize(back_point, forward_point, z + drum_radius);
+                        float ratio = (segLength - fiber_cut_length) / segLength;
+
+                        Point pt = cylSurfaceLerp(ratio, back_point, forward_point);
+
+                        //make a new path based off of path, keep all settings PrintFeatureType
+                        GCodePath cut_path = path;
+                        // I hate this constructor so much
+                        GCodePathConfig::SpeedDerivatives sd;
+                        sd.speed = path.config->getSpeed();
+                        sd.acceleration = path.config->getAcceleration();
+                        sd.jerk = path.config->getJerk();
+                        cut_path.config = new GCodePathConfig(PrintFeatureType::Cut, 
+                        path.config->getLineWidth(), 
+                        path.config->getLayerThickness(), 
+                        path.config->getFlowPercentage(), 
+                        sd,
+                        path.config->isBridgePath(), 
+                        path.config->getFanSpeed());
+
+                        cut_path.points.clear();
+                        cut_path.points.push_back(pt);
+                        cut_path.points.insert(cut_path.points.end(),paths[idx].points.begin()+inner_idx, paths[idx].points.end());
+                        // erase the points from the original path
+                        paths[idx].points.erase(paths[idx].points.begin()+inner_idx, paths[idx].points.end());
+                        // add the cut path to the end of paths
+                        paths.insert(paths.begin() + idx + 1, cut_path);
+                        // go ahead and increment so we don't check the newly added path
+                        path_idx++;
+
+                        log("path_idx: %d \n", path_idx);
+                        break_again = true;
+                        break;
+                    }
+                }
+                if(break_again)
+                    break;
+            }
+        }
+    } 
+    return;
+}
+
 GCodePath& LayerPlan::addTravel(Point p, bool force_comb_retract)
 {
     const GCodePathConfig& travel_config = configs_storage.travel_config_per_extruder[getExtruder()];
@@ -1332,6 +1466,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     int extruder = gcode.getExtruderNr();
     bool acceleration_enabled = storage.getSettingBoolean("acceleration_enabled");
     bool jerk_enabled = storage.getSettingBoolean("jerk_enabled");
+    unsigned int fiber_cut_length = storage.getSettingInMillimeters("fiber_cut_length");
 
     for(unsigned int extruder_plan_idx = 0; extruder_plan_idx < extruder_plans.size(); extruder_plan_idx++)
     {
@@ -1503,8 +1638,13 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     }
                     else 
                     {
-                        for(unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
+                        for(int point_idx = 0; point_idx < path.points.size(); point_idx++)
                         {
+                            // the cut is always right after the first point in a cut print feature
+                            if(path.isCut() && point_idx == 1)
+                            {
+                                gcode.writeCode(";TYPE: CUT");
+                            }
                             sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), speed);
                             gcode.writeExtrusion(path.points[point_idx], speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset, train->getSettingInMicrons("drum_radius"));
                         }

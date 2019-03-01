@@ -82,6 +82,11 @@ bool GCodePathConfig::isTravelPath() const
     return line_width == 0;
 }
 
+bool GCodePathConfig::isCut() const
+{
+    return getPrintFeatureType() == PrintFeatureType::Cut;
+}
+
 bool GCodePathConfig::isBridgePath() const
 {
     return is_bridge_path;

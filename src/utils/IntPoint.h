@@ -76,6 +76,20 @@ INLINE Point cylDiff(const Point& p0, const Point& p1)
 {
     return Point((p0.X-p1.X) % int(2*M_PI*THETAFACTOR), p0.Y-p1.Y);
 }
+INLINE float cylSize(const Point& p0, const Point& p1, coord_t z_height)
+{
+    auto p = cylDiff(p0, p1);
+    float arc_length = z_height * ((float)p.X / (float)THETAFACTOR);
+    double temp = sqrt(arc_length*arc_length + p.Y*p.Y);
+    return temp;
+}
+INLINE Point cylSurfaceLerp(float ratio, const Point& p0, const Point& p1)
+{
+    coord_t x = (p1.X-p0.X)*ratio + p0.X;
+    coord_t y = (p1.Y-p0.Y)*ratio + p0.Y;
+    Point pt = Point(x,y);
+    return pt;
+}
 INLINE float vSize2f(const Point& p0)
 {
     return float(p0.X)*float(p0.X)+float(p0.Y)*float(p0.Y);

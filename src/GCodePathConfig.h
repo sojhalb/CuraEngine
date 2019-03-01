@@ -78,6 +78,8 @@ public:
 
     bool isTravelPath() const;
 
+    bool isCut() const;
+
     bool isBridgePath() const;
 
     double getFanSpeed() const;

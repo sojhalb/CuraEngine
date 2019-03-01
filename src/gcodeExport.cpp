@@ -652,7 +652,7 @@ void GCodeExport::writeTravel(int x, int y, int z, double speed)
     CommandSocket::sendLineTo(travel_move_type, Point(x, y), display_width, layer_height, speed);
 
     *output_stream << "G0";
-    writeFXYZE(speed, x, y, z, current_e_value, travel_move_type);
+    writeFBYZE(speed, x, y, z, current_e_value, travel_move_type);
 }
 
 void GCodeExport::writeExtrusion(int x, int y, int z, double speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset, coord_t drum_radius)
@@ -716,7 +716,35 @@ void GCodeExport::writeExtrusion(int x, int y, int z, double speed, double extru
     double new_e_value = current_e_value + extrusion_per_mm * diff.vSizeMMCyl(drum_radius);
 
     *output_stream << "G1";
-    writeFXYZE(speed, x, y, z, new_e_value, feature);
+    writeFBYZE(speed, x, y, z, new_e_value, feature);
+}
+
+void GCodeExport::writeFBYZE(double speed, int x, int y, int z, double e, PrintFeatureType feature)
+{
+    if (currentSpeed != speed)
+    {
+        *output_stream << " F" << PrecisionedDouble{1, speed * 60};
+        currentSpeed = speed;
+    }
+
+    Point gcode_pos = getGcodePos(x, y, current_extruder);
+    total_bounding_box.include(Point3(gcode_pos.X, gcode_pos.Y, z));
+
+    *output_stream << " B" << MMtoStream{gcode_pos.X} << " Y" << MMtoStream{gcode_pos.Y};
+    if (z != currentPosition.z)
+    {
+        *output_stream << " Z" << MMtoStream{z};
+    }
+    if (e + current_e_offset != current_e_value)
+    {
+        const double output_e = (relative_extrusion)? e + current_e_offset - current_e_value : e + current_e_offset;
+        *output_stream << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{5, output_e};
+    }
+    *output_stream << new_line;
+    
+    currentPosition = Point3(x, y, z);
+    current_e_value = e;
+    estimateCalculator.plan(TimeEstimateCalculator::Position(INT2MM(x), INT2MM(y), INT2MM(z), eToMm(e)), speed, feature);
 }
 
 void GCodeExport::writeFXYZE(double speed, int x, int y, int z, double e, PrintFeatureType feature)
@@ -1089,6 +1117,43 @@ void GCodeExport::writeTemperatureCommand(int extruder, double temperature, bool
         *output_stream << "M116" << new_line;
     }
     extruder_attr[extruder].currentTemperature = temperature;
+}
+
+void GCodeExport::writeCutCommand(int extruder)
+{
+
+    *output_stream << "CUT COMMAND" << new_line; // get temperatures from the last update, the M109 will not let get the target temperature
+
+    return;
+    // taken from writeTemperatureCommand
+//     if (wait && flavor != EGCodeFlavor::MAKERBOT)
+//     {
+//         if(flavor == EGCodeFlavor::MARLIN)
+//         {
+//             *output_stream << "M105" << new_line; // get temperatures from the last update, the M109 will not let get the target temperature
+//         }
+//         *output_stream << "M109";
+//         extruder_attr[extruder].waited_for_temperature = true;
+//     }
+//     else
+//     {
+//         *output_stream << "M104";
+//         extruder_attr[extruder].waited_for_temperature = false;
+//     }
+//     if (extruder != current_extruder)
+//     {
+//         *output_stream << " T" << extruder;
+//     }
+// #ifdef ASSERT_INSANE_OUTPUT
+//     assert(temperature >= 0);
+// #endif // ASSERT_INSANE_OUTPUT
+//     *output_stream << " S" << PrecisionedDouble{1, temperature} << new_line;
+//     if (wait && flavor == EGCodeFlavor::MAKERBOT)
+//     {
+//         //Makerbot doesn't use M109 for heat-and-wait. Instead, use M104 and then wait using M116.
+//         *output_stream << "M116" << new_line;
+//     }
+//     extruder_attr[extruder].currentTemperature = temperature;
 }
 
 void GCodeExport::writeBedTemperatureCommand(double temperature, bool wait)
