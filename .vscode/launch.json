@@ -31,6 +31,8 @@
                 "-s",
                 "seam_back=46123",
                 "-s",
+                "cyl_skin_density_enabled=true",
+                "-s",
                 "fiber_enabled=false",
                 "-s",
                 "fiber_cut_length=80.00",

@@ -2078,6 +2078,15 @@ void FffGcodeWriter::processTopBottom(const SliceDataStorage& storage, LayerPlan
     // calculate polygons and lines
     Polygons* perimeter_gaps_output = (generate_perimeter_gaps)? &concentric_perimeter_gaps : nullptr;
 
+    if (storage.getSettingBoolean("cyl_skin_density_enabled"))
+    {
+        //adjust infill density based on height
+        double height = gcode_layer.z + storage.getSettingInMicrons("drum_radius");
+        // under r == 10mm the drum surface is actually smaller than the cartesian equivalent
+        // likewise r > 10 the drum is larger than the cartesian equivalent
+        skin_density = height/10000;
+    } 
+
     processSkinPrintFeature(storage, gcode_layer, mesh, extruder_nr, skin_part.inner_infill, *skin_config, pattern, skin_angle, skin_overlap, skin_density, perimeter_gaps_output, added_something, fan_speed);
 }
 
