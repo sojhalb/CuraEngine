@@ -719,6 +719,34 @@ void GCodeExport::writeExtrusion(int x, int y, int z, double speed, double extru
     writeFXYZE(speed, x, y, z, new_e_value, feature);
 }
 
+void GCodeExport::writeFBYZE(double speed, int x, int y, int z, double e, PrintFeatureType feature)
+{
+    if (currentSpeed != speed)
+    {
+        *output_stream << " F" << PrecisionedDouble{1, speed * 60};
+        currentSpeed = speed;
+    }
+
+    Point gcode_pos = getGcodePos(x, y, current_extruder);
+    total_bounding_box.include(Point3(gcode_pos.X, gcode_pos.Y, z));
+
+    *output_stream << " B" << MMtoStream{gcode_pos.X} << " Y" << MMtoStream{gcode_pos.Y};
+    if (z != currentPosition.z)
+    {
+        *output_stream << " Z" << MMtoStream{z};
+    }
+    if (e + current_e_offset != current_e_value)
+    {
+        const double output_e = (relative_extrusion)? e + current_e_offset - current_e_value : e + current_e_offset;
+        *output_stream << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{5, output_e};
+    }
+    *output_stream << new_line;
+    
+    currentPosition = Point3(x, y, z);
+    current_e_value = e;
+    estimateCalculator.plan(TimeEstimateCalculator::Position(INT2MM(x), INT2MM(y), INT2MM(z), eToMm(e)), speed, feature);
+}
+
 void GCodeExport::writeFXYZE(double speed, int x, int y, int z, double e, PrintFeatureType feature)
 {
     if (currentSpeed != speed)

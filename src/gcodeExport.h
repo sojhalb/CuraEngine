@@ -367,6 +367,10 @@ private:
     void writeFXYZE(double speed, int x, int y, int z, double e, PrintFeatureType feature);
 
     /*!
+     *   Essentially the same as writeFXYZE but X is relabelled to B
+     */
+    void writeFBYZE(double speed, int x, int y, int z, double e, PrintFeatureType feature);
+    /*!
      * The writeTravel and/or writeExtrusion when flavor == BFB
      * \param x build plate x
      * \param y build plate y
