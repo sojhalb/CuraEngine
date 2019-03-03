@@ -4,7 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "name": "(gdb) CuraEngine",
             "type": "cppdbg",
@@ -33,7 +32,7 @@
                 "-s",
                 "cyl_skin_density_enabled=true",
                 "-s",
-                "fiber_enabled=true",
+                "fiber_enabled=false",
                 "-s",
                 "fiber_cut_length=80.00",
                 "-s", 
@@ -43,18 +42,18 @@
                 "-s",
                 "adhesion_type=none",
                 "-s",
-                "layer_height=0.2",
+                "layer_height=0.5",
                 "-s",
                 "skin_angles=[30,-30]",
                 "-s",
                 "infill_angles=[30,-30]",
                 //"-s",
                 //"zig_zaggify_infill=true",
-                // notably zig-zaggify w/ lines produces better results than just zigzag pattern
+                //notably zig-zaggify w/ lines produces different results than just zigzag pattern
                 "-s",
                 "infill_pattern=zigzag",
                 "-s",
-                "infill_line_distance=4",
+                "infill_line_distance=2.3",
                 "-s",
                 "top_bottom_pattern=zigzag",
                 "-s",
@@ -87,8 +86,12 @@
                 "speed_topbottom=20",
                 "-s",
                 "meshfix_keep_open_polygons=false",
+                "-s",
+                "filter_out_tiny_gaps=true",
+                "-s",
+                "fill_perimeter_gaps=nowhere",
                 "-l",
-                "~/Downloads/25.4diam/10layercylinderwithwindow.stl",
+                "~/Downloads/25.4diam/cube.stl",
                 ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
