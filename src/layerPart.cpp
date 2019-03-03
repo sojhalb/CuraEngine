@@ -23,6 +23,7 @@ namespace cura {
 void createLayerWithParts(SliceLayer& storageLayer, SlicerLayer* layer, bool union_layers, bool union_all_remove_holes)
 {
     storageLayer.openPolyLines = layer->openPolylines;
+    storageLayer.has_digon = layer->has_digon;
 
     if (union_all_remove_holes)
     {

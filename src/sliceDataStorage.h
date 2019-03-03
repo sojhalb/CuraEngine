@@ -144,6 +144,7 @@ public:
     int thickness;  //!< The thickness of this layer. Can be different when using variable layer heights.
     std::vector<SliceLayerPart> parts;  //!< An array of LayerParts which contain the actual data. The parts are printed one at a time to minimize travel outside of the 3D model.
     Polygons openPolyLines; //!< A list of lines which were never hooked up into a 2D polygon. (Currently unused in normal operation)
+    bool has_digon;
 
     /*!
      * \brief The parts of the model that are exposed at the very top of the

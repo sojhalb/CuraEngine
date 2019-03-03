@@ -96,6 +96,7 @@ Polygons SkinInfillAreaComputation::getWalls(const SliceLayerPart& part_here, in
         return result;
     }
     const SliceLayer& layer2 = mesh.layers[layer2_nr];
+    //result.has_digon = layer2.parts.front().outline.has_digon;
     for (const SliceLayerPart& part2 : layer2.parts)
     {
         if (part_here.boundaryBox.hit(part2.boundaryBox))
@@ -149,9 +150,12 @@ void SkinInfillAreaComputation::generateSkinsAndInfill()
     generateSkinAndInfillAreas();
 
     SliceLayer* layer = &mesh.layers[layer_nr];
+    
     for (unsigned int part_nr = 0; part_nr < layer->parts.size(); part_nr++)
     {
         SliceLayerPart& part = layer->parts[part_nr];
+
+
         generateSkinInsetsAndInnerSkinInfill(&part);
 
         generateRoofing(part);
@@ -241,6 +245,16 @@ void SkinInfillAreaComputation::generateSkinAndInfillAreas(SliceLayerPart& part)
  */
 void SkinInfillAreaComputation::calculateBottomSkin(const SliceLayerPart& part, int min_infill_area, Polygons& downskin)
 {
+    bool below_has_digon;
+    if(layer_nr < bottom_layer_count)
+    {
+        below_has_digon = false;
+    }
+    else
+    {
+        below_has_digon = mesh.layers[layer_nr - bottom_layer_count].has_digon;
+    }
+
     if (static_cast<int>(layer_nr - bottom_layer_count) >= 0 && bottom_layer_count > 0)
     {
         Polygons not_air = getWalls(part, layer_nr - bottom_layer_count, bottom_reference_wall_idx).offset(bottom_reference_wall_expansion);
@@ -256,7 +270,7 @@ void SkinInfillAreaComputation::calculateBottomSkin(const SliceLayerPart& part, 
             not_air.removeSmallAreas(min_infill_area);
         }
 
-        if (downskin.has_digon)
+        if (below_has_digon)
         {
             downskin = downskin.difference(downskin); // skin overlaps with the walls
         }
@@ -271,6 +285,16 @@ void SkinInfillAreaComputation::calculateBottomSkin(const SliceLayerPart& part, 
 
 void SkinInfillAreaComputation::calculateTopSkin(const SliceLayerPart& part, int min_infill_area, Polygons& upskin)
 {
+    bool above_has_digon;  
+    if (layer_nr == mesh.layers.size() - top_layer_count)
+    {
+        above_has_digon = false;
+    }
+    else
+    {
+        above_has_digon = mesh.layers[layer_nr + top_layer_count].has_digon;
+    }
+
     if (static_cast<int>(layer_nr + top_layer_count) < static_cast<int>(mesh.layers.size()) && top_layer_count > 0)
     {
         Polygons not_air = getWalls(part, layer_nr + top_layer_count, top_reference_wall_idx).offset(top_reference_wall_expansion);
@@ -286,9 +310,9 @@ void SkinInfillAreaComputation::calculateTopSkin(const SliceLayerPart& part, int
             not_air.removeSmallAreas(min_infill_area);
         }
 
-        if (upskin.has_digon)
+        if (above_has_digon)
         {
-            upskin = upskin.difference(upskin); // skin overlaps with the walls
+            upskin = upskin.difference(upskin); // don't add topskin if digons are above
         }
         else
         {

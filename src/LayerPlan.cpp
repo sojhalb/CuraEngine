@@ -1643,7 +1643,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                             // the cut is always right after the first point in a cut print feature
                             if(path.isCut() && point_idx == 1)
                             {
-                                gcode.writeCode(";TYPE: CUT");
+                                gcode.writeCode("M98 P/macros/cut.g");
                             }
                             sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), speed);
                             gcode.writeExtrusion(path.points[point_idx], speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset, train->getSettingInMicrons("drum_radius"));

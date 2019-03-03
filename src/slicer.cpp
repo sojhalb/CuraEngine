@@ -186,6 +186,7 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
 
                     polygons.add(poly);
                     polygons.has_digon = true;
+                    has_digon = true;
                 }
             }
             else

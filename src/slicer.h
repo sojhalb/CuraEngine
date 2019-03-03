@@ -51,6 +51,7 @@ class SlicerLayer
 public:
     std::vector<SlicerSegment> segments;
     std::multimap<int, int> face_idx_to_segment_idx; // topology
+    bool has_digon;
 
     int z = -1;
     Polygons polygons;
