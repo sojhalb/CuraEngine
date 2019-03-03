@@ -32,7 +32,7 @@
                 "-s",
                 "cyl_skin_density_enabled=true",
                 "-s",
-                "fiber_enabled=false",
+                "fiber_cut_enabled=true",
                 "-s",
                 "fiber_cut_length=80.00",
                 "-s", 

@@ -45,7 +45,7 @@ LayerPlan* LayerPlanBuffer::processBuffer()
     {
         addConnectingTravelMove(*--(--buffer.end()), *--buffer.end());
         LayerPlan* lp = *--(--buffer.end());
-        if (lp->storage.getSettingBoolean("fiber_enabled"))
+        if (lp->storage.getSettingBoolean("fiber_cut_enabled"))
         {
             insertCutCommand(lp);
         }
