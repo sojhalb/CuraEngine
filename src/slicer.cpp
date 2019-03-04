@@ -179,7 +179,7 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
 
                     ClipperLib::IntPoint start_seam_pt = (*poly).at(0);
                     //append the entire old digon to the new poly
-                    seam_bot = std::find(poly.begin(), poly.end(), seam);
+                    seam_bot = std::find(poly.begin(), poly.end(), test);
                     (*poly).insert(seam_bot + 1, open_digon.begin(), open_digon.end());
                     // add the start point to the end to close the poly
                     (*poly).push_back(start_seam_pt);
