@@ -396,33 +396,55 @@ void LayerPlan::addCut()
             std::vector<Point> points;
 
             //generate a flat list of points
-            for(int idx = path_idx; idx >= 0; idx--)
-            {
-                for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
-                {
-                    points.push_back(paths[idx].points[inner_idx]);
-                }
-            }
+            // for(int idx = path_idx; idx >= 0; idx--)
+            // {
+            //     for(int inner_idx = paths[idx].points.size() - 1; inner_idx >= 0; inner_idx--)
+            //     {
+            //         points.push_back(paths[idx].points[inner_idx]);
+            //     }
+            // }
 
             //find the split point
-            int split_idx = 0;
+            //int split_idx = 0;
             fiber_cut_length = storage.getSettingInMicrons("fiber_cut_length"); // could be handled better
 
             Point forward_point, back_point;
-            for(; split_idx < points.size() - 1; split_idx++)
+            for(unsigned int idx = path_idx; (int)idx >= 0; idx--)
             {
-                float seg_length;
-                forward_point = points[split_idx];
-                back_point = points[split_idx + 1];
-
-                seg_length = cylSize(back_point, forward_point, z + drum_radius);
-                
-                // this segment is not long enough so look for the cut in the next segment
-                if (seg_length < fiber_cut_length)
-                    fiber_cut_length -= seg_length;
-                else
+                bool double_break = false;
+                std::vector<Point> points = paths[idx].points;
+                if(!paths[idx].isTravelPath())
                 {
-                    break;
+                    for (unsigned int point_idx = paths[idx].points.size() - 1; (int)point_idx >= 0; point_idx--)
+                    {
+                        if(point_idx == 0)
+                        {
+                            // 1 travel path followed by a extrusion path will extrude from the end of the travel
+                            // to the start of the extrusion
+                            forward_point = points[point_idx];
+                            back_point = paths[idx - 1].points.back();
+                        }
+                        else
+                        {
+                            forward_point = points[point_idx];
+                            back_point = points.at(point_idx - 1);
+                        }
+                        
+                        float seg_length;
+                        
+                        seg_length = cylSize(back_point, forward_point, z + drum_radius);
+                        
+                        // this segment is not long enough so look for the cut in the next segment
+                        if (seg_length < fiber_cut_length)
+                            fiber_cut_length -= seg_length;
+                        else
+                        {
+                            double_break = true;
+                            break;
+                        }
+                    }
+                    if (double_break)
+                        break;
                 }
                 
             }
@@ -466,7 +488,7 @@ void LayerPlan::addCut()
                         // go ahead and increment so we don't check the newly added path
                         path_idx++;
 
-                        log("path_idx: %d \n", path_idx);
+                        log("adding a cut to layer %d for path_idx: %d \n the cut is inserted at: %d\n", layer_nr, path_idx, idx);
                         break_again = true;
                         break;
                     }
