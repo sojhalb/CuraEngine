@@ -85,13 +85,6 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
                         assert(false);
                     }
 
-                    // add 2 pi to the lower digon (y == 0), todo add a check
-                    // int bottom_max_idx = 1;
-                    // int top_min_idx = 1;
-                    // auto bottom_max = *max_element(std::begin(open_digon), std::end(open_digon));
-
-                    // assuming that open digon is always decreasing (Y is > than poly) and poly is increasing..
-
                     if(open_digon.front().Y < poly.front().Y)
                     {
                         auto temp = open_digon;
@@ -116,27 +109,9 @@ void SlicerLayer::makeBasicPolygonLoop(Polygons &open_polylines, Polygon &open_d
                     {
                         poly.back().X += 2*PI*THETAFACTOR;
                     }
-                    // auto bottom_max_iter = max_element(open_digon.begin(), open_digon.end());
 
                     auto top_max_iter = max_element(poly.begin(), poly.end());
 
-                    // // add 2*PI to points in bottom ring
-                    // bottom_max_iter++;
-                    // for(; bottom_max_iter != open_digon.end(); bottom_max_iter++)
-                    // {
-                    //     *bottom_max_iter += 2*PI*THETAFACTOR;
-                    // }
-
-                    // // sub 2*PI to points in top ring
-                    // for(auto iter = poly.begin(); iter != top_max_iter; iter++)
-                    // {
-                    //     *iter -= PI*THETAFACTOR;
-                    // }
-                    // // rotate the upper digon left by top_turnback
-                    //std::rotate((*poly).begin(), (*poly).begin() + (top_max_iter - poly.begin()), (*poly).end());
-                    // // sub 2 pi from the upper digon from the end
-
-                    // so far seam is just constant
                     coord_t seam = mesh->getSettingInMillimeters("seam_front");
                     coord_t seam2 = mesh->getSettingInMillimeters("seam_back");
                     
