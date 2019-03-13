@@ -701,7 +701,7 @@ void GCodeExport::writeExtrusion(int x, int y, int z, double speed, double extru
 
     //flow rate compensation
     double extrusion_offset = 0;
-    if (diff.vSizeMMCyl(drum_radius)) {
+    if (diff.vSizeMMCyl(drum_radius) > 0) {
         extrusion_offset = speed * extrusion_mm3_per_mm * extrusion_offset_factor;
         if (extrusion_offset > max_extrusion_offset) {
             extrusion_offset = max_extrusion_offset;
@@ -713,7 +713,7 @@ void GCodeExport::writeExtrusion(int x, int y, int z, double speed, double extru
         *output_stream << ";FLOW_RATE_COMPENSATED_OFFSET = " << current_e_offset << new_line;
     }
 
-    double new_e_value = current_e_value + extrusion_per_mm * diff.vSizeMMCyl(drum_radius);
+    double new_e_value = current_e_value + extrusion_per_mm * diff.vSizeMMCyl(drum_radius + z);
 
     *output_stream << "G1";
     writeFBYZE(speed, x, y, z, new_e_value, feature);
