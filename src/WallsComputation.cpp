@@ -50,7 +50,7 @@ void WallsComputation::generateInsets(SliceLayerPart* part, int r)
         }
         else if (i == 1)
         {
-            part->insets[1] = part->insets[0].cyl_offset(-line_width_0 / 2 + wall_0_inset - line_width_x / 2, r);
+            part->insets[1] = part->insets[0].cyl_offset((-line_width_0 / 2 + wall_0_inset - line_width_x / 2), r);
         }
         else
         {

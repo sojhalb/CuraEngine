@@ -288,6 +288,7 @@ Polygons Polygons::cyl_offset(int distance, int radius, ClipperLib::JoinType joi
         return *this;
     }
 
+    // normal offset is okay except at high radius the lines separate too much
     ClipperLib::Paths union_poly_paths = unionPolygons().paths;
     ClipperLib::Paths flat_drum_paths;
     for (int i = 0; i < union_poly_paths.size(); i++)
@@ -296,7 +297,8 @@ Polygons Polygons::cyl_offset(int distance, int radius, ClipperLib::JoinType joi
         ClipperLib::Path flat_drum_path;
         for (int j = 0; j < union_poly_paths[i].size(); j++)
         {
-            flat_drum_path.push_back(Point(radius*union_poly_paths[i][j].X, union_poly_paths[i][j].Y));
+            double flat_drum_x = ( (double)union_poly_paths[i][j].X / 10000 ) * ((double)radius + 12700);
+            flat_drum_path.push_back(Point(flat_drum_x, union_poly_paths[i][j].Y));
         }
         flat_drum_paths.push_back(flat_drum_path);
     }
@@ -314,7 +316,8 @@ Polygons Polygons::cyl_offset(int distance, int radius, ClipperLib::JoinType joi
         ClipperLib::Path radian_offset_path;
         for (int j = 0; j < ret[i].size(); j++)
         {
-            radian_offset_path.push_back(Point(ret[i][j].X / radius, ret[i][j].Y));
+            double radian_x = ((double)ret[i][j].X / ((double)radius + 12700)) * 10000;
+            radian_offset_path.push_back(Point(radian_x , ret[i][j].Y));
         }
         radian_offset_paths.push_back(radian_offset_path);
     }
