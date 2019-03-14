@@ -5,13 +5,15 @@
 #include "utils/polygonUtils.h"
 namespace cura {
 
-WallsComputation::WallsComputation(int wall_0_inset, int line_width_0, int line_width_x, size_t inset_count, bool recompute_outline_based_on_outer_wall, bool remove_parts_with_no_insets)
+WallsComputation::WallsComputation(int wall_0_inset, int line_width_0, int line_width_x, size_t inset_count, bool recompute_outline_based_on_outer_wall, bool remove_parts_with_no_insets, int print_z, int drum_radius)
 : wall_0_inset(wall_0_inset)
 , line_width_0(line_width_0)
 , line_width_x(line_width_x)
 , inset_count(inset_count)
 , recompute_outline_based_on_outer_wall(recompute_outline_based_on_outer_wall)
 , remove_parts_with_no_insets(remove_parts_with_no_insets)
+, print_z(print_z)
+, drum_radius(drum_radius)
 {
 }
 
@@ -21,7 +23,7 @@ WallsComputation::WallsComputation(int wall_0_inset, int line_width_0, int line_
  *
  * generateInsets only reads and writes data for the current layer
  */
-void WallsComputation::generateInsets(SliceLayerPart* part, int r)
+void WallsComputation::generateInsets(SliceLayerPart* part)
 {
     if (inset_count == 0)
     {
@@ -46,15 +48,15 @@ void WallsComputation::generateInsets(SliceLayerPart* part, int r)
         if (i == 0)
         {
             //previously offset rather than cyl_offset
-            part->insets[0] = part->outline.cyl_offset(-line_width_0 / 2 - wall_0_inset, r);
+            part->insets[0] = part->outline.cyl_offset(-line_width_0 / 2 - wall_0_inset, print_z, drum_radius);
         }
         else if (i == 1)
         {
-            part->insets[1] = part->insets[0].cyl_offset((-line_width_0 / 2 + wall_0_inset - line_width_x / 2), r);
+            part->insets[1] = part->insets[0].cyl_offset((-line_width_0 / 2 + wall_0_inset - line_width_x / 2), print_z, drum_radius);
         }
         else
         {
-            part->insets[i] = part->insets[i - 1].cyl_offset(-line_width_x, r);
+            part->insets[i] = part->insets[i - 1].cyl_offset(-line_width_x, print_z, drum_radius);
         }
 
         const size_t inset_part_count = part->insets[i].size();
@@ -116,7 +118,7 @@ void WallsComputation::generateInsets(SliceLayer* layer)
 {
     for(unsigned int partNr = 0; partNr < layer->parts.size(); partNr++)
     {
-        generateInsets(&layer->parts[partNr], layer->printZ);
+        generateInsets(&layer->parts[partNr]);
     }
 
     //Remove the parts which did not generate an inset. As these parts are too small to print,

@@ -41,6 +41,10 @@ public:
      */
     bool remove_parts_with_no_insets;
 
+
+    int print_z;
+    int drum_radius;
+
     /*!
      * Basic constructor initializing the parameters with which to perform the
      * walls computation.
@@ -55,7 +59,7 @@ public:
      * \param remove_parts_with_no_insets Whether to remove parts if they get no
      * single inset.
      */
-    WallsComputation(int wall_0_inset, int line_width_0, int line_width_x, size_t inset_count, bool recompute_outline_based_on_outer_wall, bool remove_parts_with_no_insets);
+    WallsComputation(int wall_0_inset, int line_width_0, int line_width_x, size_t inset_count, bool recompute_outline_based_on_outer_wall, bool remove_parts_with_no_insets, int printZ, int drum_radius);
 
     /*!
      * Generates the insets / perimeters for all parts in a layer.
@@ -73,7 +77,7 @@ private:
      *
      * \param part The part for which to generate the insets.
      */
-    void generateInsets(SliceLayerPart* part, int r);
+    void generateInsets(SliceLayerPart* part);
 
 };
 }//namespace cura

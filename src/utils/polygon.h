@@ -826,7 +826,7 @@ public:
     }
 
     Polygons offset(int distance, ClipperLib::JoinType joinType = ClipperLib::jtMiter, double miter_limit = 1.2) const;
-    Polygons cyl_offset(int distance, int radius, ClipperLib::JoinType joinType = ClipperLib::jtMiter, double miter_limit = 1.2) const;
+    Polygons cyl_offset(int distance, int print_z, int drum_radius, ClipperLib::JoinType joinType = ClipperLib::jtMiter, double miter_limit = 1.2) const;
 
     Polygons offsetPolyLine(int distance, ClipperLib::JoinType joinType = ClipperLib::jtMiter) const
     {

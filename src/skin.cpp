@@ -154,8 +154,6 @@ void SkinInfillAreaComputation::generateSkinsAndInfill()
     for (unsigned int part_nr = 0; part_nr < layer->parts.size(); part_nr++)
     {
         SliceLayerPart& part = layer->parts[part_nr];
-
-
         generateSkinInsetsAndInnerSkinInfill(&part);
 
         generateRoofing(part);
@@ -398,11 +396,11 @@ void SkinInfillAreaComputation::generateSkinInsets(SkinPart& skin_part)
         if (inset_idx == 0)
         {
             //The 10 micron reduced inset is to prevent rounding errors from creating gaps that get filled by the fill small gaps routine.
-            skin_part.insets[0] = skin_part.outline.offset(-skin_line_width / 2 + 10);
+            skin_part.insets[0] = skin_part.outline.cyl_offset(-skin_line_width / 2 + 10, mesh.layers[layer_nr].printZ , mesh.getSettingInMicrons("drum_radius"));
         }
         else
         {
-            skin_part.insets[inset_idx] = skin_part.insets[inset_idx - 1].offset(-skin_line_width);
+            skin_part.insets[inset_idx] = skin_part.insets[inset_idx - 1].cyl_offset(-skin_line_width, mesh.layers[layer_nr].printZ , mesh.getSettingInMicrons("drum_radius"));
         }
 
         // optimize polygons: remove unnecessary verts

@@ -798,7 +798,7 @@ void FffPolygonGenerator::processInsets(const SliceDataStorage& storage, SliceMe
         }
         bool recompute_outline_based_on_outer_wall = (mesh.getSettingBoolean("support_enable") || mesh.getSettingBoolean("support_tree_enable")) && !mesh.getSettingBoolean("fill_outline_gaps");
         bool remove_parts_with_no_insets = !mesh.getSettingBoolean("fill_outline_gaps");
-        WallsComputation walls_computation(mesh.getSettingInMicrons("wall_0_inset"), line_width_0, line_width_x, inset_count, recompute_outline_based_on_outer_wall, remove_parts_with_no_insets);
+        WallsComputation walls_computation(mesh.getSettingInMicrons("wall_0_inset"), line_width_0, line_width_x, inset_count, recompute_outline_based_on_outer_wall, remove_parts_with_no_insets, layer->printZ, mesh.getSettingInMicrons("drum_radius"));
         walls_computation.generateInsets(layer);
     }
     else

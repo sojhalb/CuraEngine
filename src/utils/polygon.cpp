@@ -281,7 +281,7 @@ Polygons Polygons::offset(int distance, ClipperLib::JoinType join_type, double m
     return ret;
 }
 
-Polygons Polygons::cyl_offset(int distance, int radius, ClipperLib::JoinType join_type, double miter_limit) const
+Polygons Polygons::cyl_offset(int distance, int print_z, int drum_radius, ClipperLib::JoinType join_type, double miter_limit) const
 {
     if (distance == 0)
     {
@@ -297,7 +297,7 @@ Polygons Polygons::cyl_offset(int distance, int radius, ClipperLib::JoinType joi
         ClipperLib::Path flat_drum_path;
         for (int j = 0; j < union_poly_paths[i].size(); j++)
         {
-            double flat_drum_x = ( (double)union_poly_paths[i][j].X / 10000 ) * ((double)radius + 12700);
+            double flat_drum_x = ( (double)union_poly_paths[i][j].X / 10000 ) * ((double)print_z + drum_radius);
             flat_drum_path.push_back(Point(flat_drum_x, union_poly_paths[i][j].Y));
         }
         flat_drum_paths.push_back(flat_drum_path);
@@ -316,7 +316,7 @@ Polygons Polygons::cyl_offset(int distance, int radius, ClipperLib::JoinType joi
         ClipperLib::Path radian_offset_path;
         for (int j = 0; j < ret[i].size(); j++)
         {
-            double radian_x = ((double)ret[i][j].X / ((double)radius + 12700)) * 10000;
+            double radian_x = ((double)ret[i][j].X / ((double)print_z + drum_radius)) * 10000;
             radian_offset_path.push_back(Point(radian_x , ret[i][j].Y));
         }
         radian_offset_paths.push_back(radian_offset_path);
